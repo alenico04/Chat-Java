@@ -140,35 +140,141 @@ public class Server {
             broadcastMessage(list);
         }
 
+        private static void getAllMessagesFromDatabase(PrintWriter out) {
+            String query = "SELECT user_id, content, timestamp FROM messages ORDER BY timestamp ASC";
+            
+            try (Connection conn = connect();
+                 java.sql.PreparedStatement stmt = conn.prepareStatement(query)) {
+        
+                java.sql.ResultSet rs = stmt.executeQuery();
+        
+                out.println(">> Tutti i messaggi presenti nel database:");
+        
+                boolean found = false;
+                while (rs.next()) {
+                    found = true;
+                    String user = rs.getString("user_id");
+                    String content = rs.getString("content");
+                    String timestamp = rs.getTimestamp("timestamp").toString();
+                    out.println("[" + timestamp + "] " + user + ": " + content);
+                }
+        
+                if (!found) {
+                    out.println(">> Nessun messaggio presente nel database.");
+                }
+        
+            } catch (SQLException e) {
+                e.printStackTrace();
+                out.println(">> Errore nella query dei messaggi.");
+            }
+        }
+
+        
+        
+
         private void commandList(String command){
             String[] formattedMessage = command.split(" ", 2);
+            // all'interno di commandList:
             switch (formattedMessage[0]) {
-                // case "list" -> {
-                //     out.println(">> Connected users: ");
-                //     for (String username : clients.keySet()) {
-                //         out.println("   - " + username);
-                //     }
-                // }
+                case "listUsers" -> {
+                    getUsersFromDatabase();
+                    out.println(">> Users listed from database.");
+                }
+                case "messages" -> {
+                    if (formattedMessage.length > 1) {
+                        getMessagesFromUser(formattedMessage[1]);
+                    } else {
+                        out.println(">> Usage: /messages <username>");
+                    }
+                }
+                case "allChats" -> {
+                    getAllMessagesFromDatabase(out);
+                }
                 case "p" -> {
                     String[] privateMessage = formattedMessage[1].split(" ", 2);
                     privateMessage(privateMessage[0], username + ": (whisper) " + privateMessage[1]);
                 }
                 case "?" -> {
-                    // show list of commands
+                    out.println("Commands available:");
+                    out.println("/listUsers - Show users in the database");
+                    out.println("/messages <username> - Show messages from user");
+                    out.println("/allChats - Show all messages in the database");
+                    out.println("/p <username> <message> - Private message");
                 }
                 default -> {
                     out.println(">> Server: comando non esistente");
                 }
             }
-        }
 
-        private void broadcastMessage(String message) {
+        }
+        
+        
+        
+
+        private static void broadcastMessage(String message) {
             synchronized (clients) {
                 for (PrintWriter printWriter : clients.values()) {
                     printWriter.println(message);
                 }
             }
         }
+
+        private static void getUsersFromDatabase() {
+            try (Connection conn = connect(); 
+                 java.sql.Statement stmt = conn.createStatement()) {
+                String query = "SELECT username FROM users";
+                java.sql.ResultSet rs = stmt.executeQuery(query);
+                
+                StringBuilder usersList = new StringBuilder("Users in DB: ");
+                while (rs.next()) {
+                    usersList.append(rs.getString("username")).append(", ");
+                }
+        
+                // Rimuove l'ultima virgola e spazio
+                if (usersList.length() > 0) {
+                    usersList.setLength(usersList.length() - 2);
+                }
+        
+                // Stampa nella console
+                System.out.println(usersList.toString());
+        
+                // Invia la lista a tutti i client connessi
+                broadcastMessage(usersList.toString());
+        
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private void getMessagesFromUser(String username) {
+            String query = "SELECT content, timestamp FROM messages WHERE user_id = ?";
+            
+            try (Connection conn = connect();
+                 java.sql.PreparedStatement pstmt = conn.prepareStatement(query)) {
+        
+                pstmt.setString(1, username); // Supponendo che user_id sia una stringa (username)
+        
+                java.sql.ResultSet rs = pstmt.executeQuery();
+                
+                boolean hasMessages = false;
+                while (rs.next()) {
+                    hasMessages = true;
+                    String msg = rs.getString("content");
+                    String timestamp = rs.getString("timestamp");
+                    out.println("[" + timestamp + "] " + username + ": " + msg);
+                }
+        
+                if (!hasMessages) {
+                    out.println(">> Nessun messaggio trovato per l'utente: " + username);
+                }
+        
+            } catch (SQLException e) {
+                e.printStackTrace();
+                out.println(">> Errore durante il recupero dei messaggi.");
+            }
+        }
+        
+
 
         private void privateMessage(String user, String message){
             synchronized (clients) {
