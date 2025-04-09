@@ -51,6 +51,8 @@ public class Server {
         private PrintWriter out;
         private BufferedReader in;
         private String username;
+        private String accesso;
+        private String password;
 
         public ClientHandler(Socket socket){
             this.socket = socket;
@@ -62,8 +64,9 @@ public class Server {
                 out = new PrintWriter(socket.getOutputStream(), true);
                 
                 //username check
-                while (true) { 
-                    username = in.readLine();
+                while (true) {
+                    accesso = in.readLine();
+                    username = accesso.split(":", 2)[0];
                     if (!clients.containsKey(username)){
                         out.println("ok");
                         break;
@@ -134,6 +137,23 @@ public class Server {
         //     }
         //     return result;
         // }
+
+        private void isValidPassword(String accesso){
+            password = accesso.split(":", 2)[1];
+
+            String query = "SELECT content, timestamp FROM messages WHERE user_id = ?";
+
+            try (Connection conn = connect();
+                 java.sql.PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+                pstmt.setString(1, username); // Supponendo che user_id sia una stringa (username)
+
+                java.sql.ResultSet rs = pstmt.executeQuery();
+
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
 
         private void updateUserList(){
