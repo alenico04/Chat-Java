@@ -3,7 +3,6 @@ package client.homePage;
 import client.Chat;
 import client.User;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 
 public class HomePage extends BorderPane {
@@ -11,7 +10,7 @@ public class HomePage extends BorderPane {
     private HBox header;
     private BorderPane body;
     private UserPanel userPanel;
-    private FlowPane chatList;
+    private ChatList chatList;
     private int headerHeight = 150;
     private int userPanelWidth = 400;
 
@@ -19,7 +18,6 @@ public class HomePage extends BorderPane {
         Header header = new Header();
         BorderPane body = new BorderPane();
         body.prefHeightProperty().bind(this.heightProperty().subtract(this.headerHeight));
-        body.setStyle("-fx-background-color:rgb(78, 78, 78);");
 
         UserPanel userPanel = new UserPanel(body.heightProperty(), user);
         ChatList chatList = new ChatList(body.heightProperty(), body.widthProperty(), chats);
@@ -78,11 +76,11 @@ public class HomePage extends BorderPane {
         this.userPanel = userPanel;
     }
 
-    public FlowPane getChatList() {
+    public ChatList getChatList() {
         return chatList;
     }
 
-    public void setChatList(FlowPane chatList) {
+    public void setChatList(ChatList chatList) {
         this.chatList = chatList;
     }
 }
