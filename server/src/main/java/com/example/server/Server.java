@@ -8,6 +8,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,7 +16,7 @@ import java.util.Map;
 public class Server {
     private static final int PORT = 42069;
     private static Map<String, PrintWriter> clients = new HashMap<>();
-    private static final String URL = "jdbc:postgresql://0.0.0.0:5432/chatdb";
+    private static final String URL = "jdbc:postgresql://db:5432/chatdb"; // DB hostname, porta e nome del database
     private static final String USER = "postgres";
     private static final String PASSWORD = "postgres";
 
@@ -34,17 +35,15 @@ public class Server {
 
     private static Connection connect(){
         try {
-            Class.forName("org.postgresql.Driver");
+
             Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
             System.out.println("✅ Connessione riuscita!");
             return conn;
-        } catch (ClassNotFoundException e) {
-            System.err.println("Driver non trovato: " + e.getMessage());
+
         } catch (SQLException e) {
             System.out.println("❌ Errore di connessione: " + e.getMessage());
             return null;
         }
-        return null;
     }
 
     private static class ClientHandler extends Thread {
@@ -90,8 +89,10 @@ public class Server {
                     if (message.startsWith("/")){
                         commandList(message.split("/")[1]);
                     }
-                    else
+                    else {
                         broadcastMessage(username + ": " + message);
+                        getMessagesFromUser(username);
+                    }
                 }
 
             } catch (IOException ex) {
@@ -168,9 +169,6 @@ public class Server {
                 out.println(">> Errore nella query dei messaggi.");
             }
         }
-
-        
-        
 
         private void commandList(String command){
             String[] formattedMessage = command.split(" ", 2);
@@ -273,8 +271,25 @@ public class Server {
                 out.println(">> Errore durante il recupero dei messaggi.");
             }
         }
-        
 
+        public static void saveMessageToDatabase(String text, int senderUserId, int receiverChatId) {
+            String query = "INSERT INTO messages (text, sender_user_id, reciever_chat_id) VALUES (?, ?, ?)";
+
+            try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+                preparedStatement.setString(1, text);
+                preparedStatement.setInt(2, senderUserId);
+                preparedStatement.setInt(3, receiverChatId);
+
+                preparedStatement.executeUpdate();
+                System.out.println("Message saved to database: " + text);
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+                System.err.println("Failed to save message to database: " + e.getMessage());
+            }
+        }
 
         private void privateMessage(String user, String message){
             synchronized (clients) {
