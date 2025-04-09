@@ -36,20 +36,4 @@ public class Chat {
     public void setPhoto(String photo) {
         this.photo = photo;
     }
-
-    public User[] getUsers() {
-        return users;
-    }
-
-    public void setUsers(User[] users) {
-        this.users = users;
-    }
-
-    public Message[] getMessages() {
-        return messages;
-    }
-
-    public void setMessages(Message[] messages) {
-        this.messages = messages;
-    }
 }
