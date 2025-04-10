@@ -1,14 +1,10 @@
 package client;
 
+import client.homePage.HomePage;
 import javafx.application.Application;
-import javafx.geometry.Orientation;
 import javafx.scene.Scene;
-import javafx.scene.layout.FlowPane;
 import javafx.stage.Stage;
 
-/**
- * JavaFX App
- */
 public class App extends Application {
 
     public static void main(String[] args) {
@@ -18,32 +14,25 @@ public class App extends Application {
     @SuppressWarnings("exports")
     @Override
     public void start(Stage stage) throws Exception {
+
+        Chat[] chats = new Chat[10];
+        for (int i = 0; i < chats.length; i++) {
+            chats[i] = new Chat(i, "paolo", "https://www.striscialanotizia.mediaset.it/wp-content/uploads/2023/07/Gabibbo.jpeg");
+        }
         
-        FlowPane flow = new FlowPane(Orientation.VERTICAL);
-        flow.setHgap(0);
-        flow.setVgap(0);
-        flow.setStyle("-fx-background-color: lightblue;");
+        User currentUser = new User(0, "I AM STEVE", "https://www.striscialanotizia.mediaset.it/wp-content/uploads/2023/07/Gabibbo.jpeg");
+        HomePage homePage = new HomePage(currentUser, chats);
 
-        int headerHeight = 150;
-
-        FlowPane header = new FlowPane();
-        header.setPrefHeight(headerHeight);
-        header.setPrefWidth(stage.getWidth()); 
-        header.setStyle("-fx-background-color:rgb(255, 146, 146);");
-        flow.getChildren().add(header);
-
-        FlowPane body = new FlowPane();
-        body.setPrefHeight(stage.getHeight()-headerHeight);
-        body.setPrefWidth(stage.getWidth());
-        body.setStyle("-fx-background-color:rgb(104, 98, 255);");
-        flow.getChildren().add(body);
-
-        Scene scene = new Scene(flow);
-
+        Scene scene = new Scene(homePage);    
         stage.setScene(scene);
 
+        // ----- setup stage
+
         stage.setTitle("CHAT JAVA!!");
+        stage.setMinWidth(600);
         stage.setWidth(1280);
+
+        stage.setMinHeight(400);
         stage.setHeight(720);
         stage.show();
     }
