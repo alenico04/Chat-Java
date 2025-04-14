@@ -11,7 +11,7 @@ public class MessageList extends ScrollPane{
         this.setFitToWidth(true);
         this.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         this.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED); 
-        this.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-padding: 5;");
+        this.setStyle("-fx-background-color: rgb(166, 184, 255); -fx-background: transparent; -fx-padding: 5;");
 
         this.parentProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {

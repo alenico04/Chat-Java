@@ -1,5 +1,6 @@
 package client;
 
+import client.chat.ChatPage;
 import client.homepage.HomePage;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -24,7 +25,9 @@ public class App extends Application {
         User currentUser = new User(0, "I AM STEVE", "https://www.striscialanotizia.mediaset.it/wp-content/uploads/2023/07/Gabibbo.jpeg");
         HomePage homePage = new HomePage(currentUser, chats);
 
-        Scene scene = new Scene(homePage);    
+        // ChatPage ChatPage = new ChatPage(currentUser, null, null);
+
+        Scene scene = new Scene(homePage);
         stage.setScene(scene);
 
         // ----- setup stage

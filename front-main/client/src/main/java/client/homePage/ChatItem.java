@@ -65,6 +65,7 @@ public class ChatItem extends HBox {
     }
 
     private void handleChatItemClick() {
+        // 
         System.out.println("Chat clicked: " + chat.getId());
     }
 }
