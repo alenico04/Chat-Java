@@ -68,12 +68,25 @@ public class Server {
                 //username check
                 while (true) {
                     accesso = in.readLine();
-                    username = accesso.split(":", 2)[0];
-                    if (!clients.containsKey(username)){
+                    String[] parts = accesso.split(":", 2);
+                    if (parts.length < 2) {
+                        out.println(">> Formato non valido. Usa: username:password");
+                        continue;
+                    }
+                    username = parts[0];
+                    password = parts[1];
+
+                    if (clients.containsKey(username)) {
+                        out.println(">> Username già connesso");
+                        continue;
+                    }
+
+                    if (checkCredentials(username, password)) {
                         out.println("ok");
                         break;
+                    } else {
+                        out.println(">> Credenziali non valide");
                     }
-                    out.println("Username already taken");
                 }
 
                 //message on user connection
@@ -140,22 +153,25 @@ public class Server {
         //     return result;
         // }
 
-        private void isValidPassword(String accesso){
-            password = accesso.split(":", 2)[1];
-
-            String query = "SELECT content, timestamp FROM messages WHERE user_id = ?";
+        private boolean checkCredentials(String username, String password) {
+            String query = "SELECT * FROM users WHERE username = ? AND password = ?";
 
             try (Connection conn = connect();
-                 java.sql.PreparedStatement pstmt = conn.prepareStatement(query)) {
+                 PreparedStatement pstmt = conn.prepareStatement(query)) {
 
-                pstmt.setString(1, username); // Supponendo che user_id sia una stringa (username)
+                pstmt.setString(1, username);
+                pstmt.setString(2, password);  // Attenzione: assicurati che la password nel DB sia in chiaro o hashata nel modo corretto
 
-                java.sql.ResultSet rs = pstmt.executeQuery();
+                ResultSet rs = pstmt.executeQuery();
+
+                return rs.next();  // ritorna true se esiste una riga (credenziali valide)
 
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
+                return false;
             }
         }
+
 
 
         private void updateUserList(){
