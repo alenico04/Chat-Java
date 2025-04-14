@@ -1,4 +1,4 @@
-package client.homePage;
+package client.homepage;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -8,13 +8,13 @@ import javafx.scene.layout.Priority;
 import javafx.scene.text.Text;
 
 public class Header extends HBox {
-    int headerHeight = 150;
-
-    public Header() {
-        this.setPrefHeight(this.headerHeight);
+    int headerHeight;
+    
+    public Header(int headerHeight) {
+        this.setPrefHeight(headerHeight);
         this.prefWidthProperty().bind(this.widthProperty());
         this.setStyle("-fx-background-color:rgb(255, 146, 146);");
-        this.setAlignment(Pos.CENTER_LEFT); // Add this line
+        this.setAlignment(Pos.CENTER_LEFT);
         
         // Left side - Title
         Text title = new Text("JAVA CHAT");
@@ -39,5 +39,6 @@ public class Header extends HBox {
         // Add all components
         rightContainer.getChildren().addAll(searchField, searchButton);
         this.getChildren().addAll(title, rightContainer);
+        this.headerHeight = headerHeight;
     }
 }

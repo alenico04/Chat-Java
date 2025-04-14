@@ -1,4 +1,4 @@
-package client.homePage;
+package client.homepage;
 
 import client.Chat;
 import javafx.geometry.Insets;

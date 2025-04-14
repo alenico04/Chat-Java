@@ -1,6 +1,6 @@
 package client;
 
-import client.homePage.HomePage;
+import client.homepage.HomePage;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -17,7 +17,8 @@ public class App extends Application {
 
         Chat[] chats = new Chat[10];
         for (int i = 0; i < chats.length; i++) {
-            chats[i] = new Chat(i, "paolo", "https://www.striscialanotizia.mediaset.it/wp-content/uploads/2023/07/Gabibbo.jpeg");
+            String username = "paolo " + String.valueOf(i);
+            chats[i] = new Chat(i, username, "https://www.striscialanotizia.mediaset.it/wp-content/uploads/2023/07/Gabibbo.jpeg");
         }
         
         User currentUser = new User(0, "I AM STEVE", "https://www.striscialanotizia.mediaset.it/wp-content/uploads/2023/07/Gabibbo.jpeg");

@@ -1,19 +1,22 @@
-package client.homePage;
+package client.homepage;
 
 import client.Chat;
-import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.geometry.Pos;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 public class ChatList extends ScrollPane {
-    private int userPanelWidth = 450;
-
-    public ChatList(ReadOnlyDoubleProperty fatherHeight, ReadOnlyDoubleProperty fatherWidth, Chat[] chats) {
+    public ChatList(Chat[] chats) {
         // Configurazione base dello ScrollPane
         this.setMinWidth(100);
-        this.prefWidthProperty().bind(fatherWidth.subtract(userPanelWidth));
-        this.prefHeightProperty().bind(fatherHeight);
+        this.parentProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                this.prefHeightProperty().bind(((Region)newValue).heightProperty());
+                this.prefWidthProperty().bind(((Region)newValue).widthProperty());
+            }
+        });
+
         this.setFitToWidth(true);
         this.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER); // Hide horizontal scrollbar
         this.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED); // Show vertical scrollbar when needed
