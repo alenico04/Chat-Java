@@ -21,8 +21,8 @@ public class App extends Application {
             String username = "paolo " + String.valueOf(i);
             chats[i] = new Chat(i, username, "https://www.striscialanotizia.mediaset.it/wp-content/uploads/2023/07/Gabibbo.jpeg");
         }
-        
         User currentUser = new User(0, "I AM STEVE", "https://www.striscialanotizia.mediaset.it/wp-content/uploads/2023/07/Gabibbo.jpeg");
+
         HomePage homePage = new HomePage(currentUser, chats);
 
         // ChatPage ChatPage = new ChatPage(currentUser, null, null);
