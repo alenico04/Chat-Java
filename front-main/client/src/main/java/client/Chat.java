@@ -18,7 +18,6 @@ public class Chat {
         this.photo = photo;
         this.users = users;
     }
-
     // ---------------------- SETTER e GETTER
 
     public int getId() {

@@ -10,7 +10,7 @@ import java.net.Socket;
 
 import javax.swing.*;
 
-public class Client {
+public class Client2 {
     private static final String SERVER_IP = "127.0.0.1";
     private static final int PORT = 42069;
 
@@ -29,7 +29,7 @@ public class Client {
     private String username;
     private String password;
 
-    public Client() {
+    public Client2() {
         frame = new JFrame("Spaiciat");
         chatArea = new JTextArea(20, 40);
         chatArea.setFont(new Font("Consolas", Font.PLAIN, 15));
