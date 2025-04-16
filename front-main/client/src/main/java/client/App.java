@@ -7,6 +7,7 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import java.util.concurrent.CompletableFuture;
 
 public class App extends Application {
     private Stage stage;
@@ -15,6 +16,7 @@ public class App extends Application {
     private Chat[] chats;
     private User currentUser;
     private ExitAlert exitAlert;
+    private volatile boolean isClosing = false;
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -23,16 +25,54 @@ public class App extends Application {
         initializeLogin();
         setupStage();
         
-        // Initialize the exit alert after the stage is set up
         Platform.runLater(() -> {
             this.exitAlert = new ExitAlert(stage);
-            // Add close handler after everything is initialized
             stage.setOnCloseRequest(event -> {
                 event.consume();
-                if (exitAlert != null) {
-                    exitAlert.showAlert(stage);
+                if (!isClosing && exitAlert != null) {
+                    handleApplicationClose();
                 }
             });
+        });
+    }
+
+    private void handleApplicationClose() {
+        if (isClosing) return;
+        
+        isClosing = true;
+        CompletableFuture.runAsync(() -> {
+            Platform.runLater(() -> {
+                try {
+                    if (exitAlert != null) {
+                        exitAlert.showAlert().thenAccept(shouldExit -> {
+                            if (shouldExit) {
+                                cleanupAndExit();
+                            } else {
+                                isClosing = false;
+                            }
+                        });
+                    }
+                } catch (Exception e) {
+                    cleanupAndExit();
+                }
+            });
+        });
+    }
+
+    private void cleanupAndExit() {
+        Platform.runLater(() -> {
+            try {
+                if (exitAlert != null) {
+                    exitAlert.cleanup();
+                }
+                if (stage != null) {
+                    stage.hide();
+                }
+                Platform.exit();
+                System.exit(0);
+            } catch (Exception e) {
+                System.exit(1);
+            }
         });
     }
 
@@ -66,8 +106,9 @@ public class App extends Application {
 
     @Override
     public void stop() {
-        // Clean up resources when the application is closing
-        Platform.exit();
+        if (!isClosing) {
+            cleanupAndExit();
+        }
     }
 
     public static void main(String[] args) {

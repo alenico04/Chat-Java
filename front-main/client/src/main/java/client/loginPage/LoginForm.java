@@ -95,8 +95,8 @@ public class LoginForm extends StackPane {
     private void createErrorMessages() {
         String errorStyle = "-fx-fill: red; -fx-font-size: 11;";
         
-        usernameError = new Text("Username non valido");
-        passwordError = new Text("Password non valida");
+        usernameError = new Text("Username not valid");
+        passwordError = new Text("Password not valid");
         
         usernameError.setStyle(errorStyle);
         passwordError.setStyle(errorStyle);
