@@ -112,7 +112,7 @@ public class Server {
                     }
                     else {
                         broadcastMessage(username + ": " + message);
-                        getMessagesFromUser(username);
+                        saveMessageToDatabase(message, username, 1);
                     }
                 }
 
@@ -348,7 +348,8 @@ public class Server {
             }
         }
 
-        public static void saveMessageToDatabase(String text, int senderUserId, int receiverChatId) {
+        public static void saveMessageToDatabase(String text, String username, int receiverChatId) {
+            int senderUserId = ""
             String query = "INSERT INTO messages (text, sender_user_id, reciever_chat_id) VALUES (?, ?, ?)";
 
             try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
