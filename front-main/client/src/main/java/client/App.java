@@ -1,13 +1,11 @@
 package client;
 
-import client.chat.ChatPage;
 import client.homepage.HomePage;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 public class App extends Application {
-
     public static void main(String[] args) {
         launch();
     }
@@ -15,7 +13,6 @@ public class App extends Application {
     @SuppressWarnings("exports")
     @Override
     public void start(Stage stage) throws Exception {
-
         Chat[] chats = new Chat[10];
         for (int i = 0; i < chats.length; i++) {
             String username = "paolo " + String.valueOf(i);
