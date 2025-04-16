@@ -1,16 +1,23 @@
 package client;
 
 public class Chat {
-    int id; 
-    String name; 
-    String photo;
+    private int id; 
+    private String name; 
+    private String photo;
+    private User[] users;
+    private String type = "chat";
+    // ---------------------- COSTRUTTORI  
 
     public Chat(int id, String name, String photo) {
+        this(id, name, photo, null);
+    }
+
+    public Chat(int id, String name, String photo, User[] users) {
         this.id = id;
         this.name = name;
         this.photo = photo;
+        this.users = users;
     }
-
     // ---------------------- SETTER e GETTER
 
     public int getId() {
@@ -35,5 +42,11 @@ public class Chat {
 
     public void setPhoto(String photo) {
         this.photo = photo;
+    }
+    public User[] getUsers() {
+        return users;
+    }
+    public void setUsers(User[] users) {
+        this.users = users;
     }
 }

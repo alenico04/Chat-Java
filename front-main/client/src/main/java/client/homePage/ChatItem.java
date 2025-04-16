@@ -1,6 +1,7 @@
-package client.homePage;
+package client.homepage;
 
 import client.Chat;
+import client.chat.ChatPage;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -8,6 +9,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.shape.Circle;
+import javafx.stage.Stage;
 
 /**
  * Creates an HBox representing a chat item with the specified design
@@ -66,5 +68,8 @@ public class ChatItem extends HBox {
 
     private void handleChatItemClick() {
         System.out.println("Chat clicked: " + chat.getId());
+        Stage stage = (Stage) this.getScene().getWindow();
+
+        // stage.setScene(new ChatPage(null, chat, null));
     }
 }
