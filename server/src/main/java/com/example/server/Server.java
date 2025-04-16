@@ -86,7 +86,7 @@ public class Server {
                         break;
                     } else {
                         createUser(username, password);
-                        out.println(">> User created");
+                        //out.println(">> User created");
                         out.println("ok");
                         break;
                     }
