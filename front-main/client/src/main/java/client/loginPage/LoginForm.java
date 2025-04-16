@@ -217,7 +217,7 @@ public class LoginForm extends StackPane {
                     newValue.isEmpty() ? "Password required" :
                     newValue.length() < 8 ? "Password must have to be 8 characters long" :
                     !newValue.matches(".*[A-Z].*") ? "Password must contain at least one uppercase letter" :
-                    "Password must contain at least one special character (!@#$%^&*()+-=[]{};:\",.<>/?)"
+                    "Password must contain at least one special character (!@#$%^&*()+-={};:,.<>/?)"
                 );
                 passwordError.setVisible(true);
             } else {
@@ -239,7 +239,7 @@ public class LoginForm extends StackPane {
         return password != null 
             && password.length() >= 8
             && password.matches(".*[A-Z].*")
-            && password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};:\"\\\\,.<>/?].*");
+            && password.matches(".*[!@#$%^&*()_+={};:,.<>/?].*");
     }
 
     // Getters
