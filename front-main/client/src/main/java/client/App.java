@@ -1,6 +1,6 @@
 package client;
 
-import client.homePage.HomePage;
+import client.homepage.HomePage;
 import client.loginPage.Login;
 import client.alerts.ExitAlert;
 import javafx.application.Application;
@@ -94,11 +94,15 @@ public class App extends Application {
 
     private void switchToHomePage(String username) {
         // Initialize chat and user data
-        chats = new Chat[1];
-        chats[0] = new Chat(0, "paolo", "https://www.striscialanotizia.mediaset.it/wp-content/uploads/2023/07/Gabibbo.jpeg");
-        
-        currentUser = new User(0, username, "https://www.striscialanotizia.mediaset.it/wp-content/uploads/2023/07/Gabibbo.jpeg");
+        Chat[] chats = new Chat[10];
+        for (int i = 0; i < chats.length; i++) {
+            String chatName = "paolo " + String.valueOf(i);
+            chats[i] = new Chat(i, chatName, "https://www.striscialanotizia.mediaset.it/wp-content/uploads/2023/07/Gabibbo.jpeg");
+        }
+        User currentUser = new User(0, username, "https://www.striscialanotizia.mediaset.it/wp-content/uploads/2023/07/Gabibbo.jpeg");
+
         HomePage homePage = new HomePage(currentUser, chats);
+        // ChatPage ChatPage = new ChatPage(currentUser, null, null);
         
         homeScene = new Scene(homePage);    
         stage.setScene(homeScene);

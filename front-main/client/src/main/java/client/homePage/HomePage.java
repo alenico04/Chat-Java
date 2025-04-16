@@ -1,4 +1,4 @@
-package client.homePage;
+package client.homepage;
 
 import client.Chat;
 import client.User;
@@ -13,16 +13,16 @@ public class HomePage extends BorderPane {
     private UserPanel userPanel;
     private FlowPane chatList;
     private int headerHeight = 150;
-    private int userPanelWidth = 400;
+    private int userPanelWidth = 300;
 
-    public HomePage( User user, Chat[] chats ) {
-        Header header = new Header();
+    public HomePage( User currentUser, Chat[] chats ) {
+        Header header = new Header(headerHeight);
         BorderPane body = new BorderPane();
         body.prefHeightProperty().bind(this.heightProperty().subtract(this.headerHeight));
         body.setStyle("-fx-background-color:rgb(78, 78, 78);");
 
-        UserPanel userPanel = new UserPanel(body.heightProperty(), user);
-        ChatList chatList = new ChatList(body.heightProperty(), body.widthProperty(), chats);
+        UserPanel userPanel = new UserPanel(currentUser, this.userPanelWidth);
+        ChatList chatList = new ChatList(chats);
 
         this.setTop(header);
         this.setCenter(body);

@@ -68,6 +68,14 @@ public class Server {
                     if (!clients.containsKey(username)){
                         out.println("ok");
                         break;
+<<<<<<< HEAD
+=======
+                    } else {
+                        createUser(username, password);
+                        out.println(">> User created");
+                        out.println("ok");
+                        break;
+>>>>>>> 424349e52c14e83e50ff1dcba1c454e27538dacc
                     }
                     out.println("Username already taken");
                 }
@@ -134,6 +142,44 @@ public class Server {
         //     return result;
         // }
 
+<<<<<<< HEAD
+=======
+        private void createUser(String username, String password) {
+            String query = "INSERT INTO users (username, password) VALUES (?, ?)";
+            try (Connection conn = connect();
+                 PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+                pstmt.setString(1, username);
+                pstmt.setString(2, password);  // Attenzione: assicurati che la password nel DB sia in chiaro o hashata nel modo corretto
+
+                ResultSet rs = pstmt.executeQuery();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private boolean checkCredentials(String username, String password) {
+            String query = "SELECT * FROM users WHERE username = ? AND password = ?";
+
+            try (Connection conn = connect();
+                 PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+                pstmt.setString(1, username);
+                pstmt.setString(2, password);  // Attenzione: assicurati che la password nel DB sia in chiaro o hashata nel modo corretto
+
+                ResultSet rs = pstmt.executeQuery();
+
+                return rs.next();  // ritorna true se esiste una riga (credenziali valide)
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+
+
+>>>>>>> 424349e52c14e83e50ff1dcba1c454e27538dacc
 
         private void updateUserList(){
             String list = "/users " + String.join(", ", clients.keySet());

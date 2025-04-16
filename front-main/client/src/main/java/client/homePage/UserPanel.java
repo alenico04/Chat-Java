@@ -1,33 +1,38 @@
-package client.homePage;
+package client.homepage;
 
 import client.User;
-import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
 
 public class UserPanel extends VBox {
 
-    private int userPanelWidth = 350;
+    private int userPanelWidth;
     private User user;
 
-    public UserPanel(ReadOnlyDoubleProperty fatherHeight, User user) {
-        this.setMinWidth(this.userPanelWidth);
-        this.prefHeightProperty().bind(fatherHeight);
+    public UserPanel(User currentUser, int userPanelWidth) {
+        this.setMinWidth(userPanelWidth);
+        this.parentProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                this.prefHeightProperty().bind(((Region)newValue).heightProperty());
+            }
+        });
         this.setStyle("-fx-background-color:rgb(225, 253, 99);");
         this.setAlignment(Pos.CENTER);  
 
-        this.user = user;
+        this.user = currentUser;
+        this.userPanelWidth = userPanelWidth;
         
         // Create profile picture circle
         int imageSize = 220;
         ImageView profileImageView = new ImageView();
         
         try {
-            Image profileImage = new Image(user.getProfilePicture(), true);
+            Image profileImage = new Image(currentUser.getProfilePicture(), true);
             profileImageView.setImage(profileImage);
         } catch (Exception e) {
             // If image loading fails, use a default image or handle the error
@@ -44,7 +49,7 @@ public class UserPanel extends VBox {
         profileImageView.setClip(clip);
         
         // Create username label
-        Label usernameLabel = new Label(user.getUsername());
+        Label usernameLabel = new Label(currentUser.getUsername());
         usernameLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: black;");
 
         VBox.setMargin(usernameLabel, new javafx.geometry.Insets(30, 0, 0, 0));
