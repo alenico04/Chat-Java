@@ -85,7 +85,10 @@ public class Server {
                         out.println("ok");
                         break;
                     } else {
-                        out.println(">> Credenziali non valide");
+                        createUser(username, password);
+                        out.println(">> User created");
+                        out.println("ok");
+                        break;
                     }
                 }
 
@@ -152,6 +155,21 @@ public class Server {
         //     }
         //     return result;
         // }
+
+        private void createUser(String username, String password) {
+            String query = "INSERT INTO users (username, password) VALUES (?, ?)";
+            try (Connection conn = connect();
+                 PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+                pstmt.setString(1, username);
+                pstmt.setString(2, password);  // Attenzione: assicurati che la password nel DB sia in chiaro o hashata nel modo corretto
+
+                ResultSet rs = pstmt.executeQuery();
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
 
         private boolean checkCredentials(String username, String password) {
             String query = "SELECT * FROM users WHERE username = ? AND password = ?";
