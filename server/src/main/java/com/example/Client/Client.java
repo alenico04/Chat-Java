@@ -11,7 +11,7 @@ import java.net.Socket;
 import javax.swing.*;
 
 public class Client {
-    private static final String SERVER_IP = "127.0.0.1";
+    private static final String SERVER_IP = "192.168.172.193";
     private static final int PORT = 42069;
 
     private PrintWriter out;
@@ -137,7 +137,7 @@ public class Client {
                 password = JOptionPane.showInputDialog(frame, jp);
                 username = uField.getText();
 
-                if (username == null){
+                if (username == null || password == null){
                     System.exit(0);
                 }
                 else if(!controlUsername()){

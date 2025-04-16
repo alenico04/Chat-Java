@@ -11,7 +11,7 @@ import java.net.Socket;
 import javax.swing.*;
 
 public class Client2 {
-    private static final String SERVER_IP = "127.0.0.1";
+    private static final String SERVER_IP = "192.168.172.193";
     private static final int PORT = 42069;
 
     private PrintWriter out;
