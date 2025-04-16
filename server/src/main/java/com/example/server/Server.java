@@ -8,9 +8,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,7 +15,7 @@ import java.util.Map;
 public class Server {
     private static final int PORT = 42069;
     private static Map<String, PrintWriter> clients = new HashMap<>();
-    private static final String URL = "jdbc:postgresql://db:5432/chatdb"; // DB hostname, porta e nome del database
+    private static final String URL = "jdbc:postgresql://0.0.0.0:5432/chatdb";
     private static final String USER = "postgres";
     private static final String PASSWORD = "postgres";
 
@@ -37,15 +34,17 @@ public class Server {
 
     private static Connection connect(){
         try {
-
+            Class.forName("org.postgresql.Driver");
             Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
             System.out.println("✅ Connessione riuscita!");
             return conn;
-
+        } catch (ClassNotFoundException e) {
+            System.err.println("Driver non trovato: " + e.getMessage());
         } catch (SQLException e) {
             System.out.println("❌ Errore di connessione: " + e.getMessage());
             return null;
         }
+        return null;
     }
 
     private static class ClientHandler extends Thread {
@@ -53,8 +52,6 @@ public class Server {
         private PrintWriter out;
         private BufferedReader in;
         private String username;
-        private String accesso;
-        private String password;
 
         public ClientHandler(Socket socket){
             this.socket = socket;
@@ -66,30 +63,21 @@ public class Server {
                 out = new PrintWriter(socket.getOutputStream(), true);
                 
                 //username check
-                while (true) {
-                    accesso = in.readLine();
-                    String[] parts = accesso.split(":", 2);
-                    if (parts.length < 2) {
-                        out.println(">> Formato non valido. Usa: username:password");
-                        continue;
-                    }
-                    username = parts[0];
-                    password = parts[1];
-
-                    if (clients.containsKey(username)) {
-                        out.println(">> Username già connesso");
-                        continue;
-                    }
-
-                    if (checkCredentials(username, password)) {
+                while (true) { 
+                    username = in.readLine();
+                    if (!clients.containsKey(username)){
                         out.println("ok");
                         break;
+<<<<<<< HEAD
+=======
                     } else {
                         createUser(username, password);
                         out.println(">> User created");
                         out.println("ok");
                         break;
+>>>>>>> 424349e52c14e83e50ff1dcba1c454e27538dacc
                     }
+                    out.println("Username already taken");
                 }
 
                 //message on user connection
@@ -110,10 +98,8 @@ public class Server {
                     if (message.startsWith("/")){
                         commandList(message.split("/")[1]);
                     }
-                    else {
+                    else
                         broadcastMessage(username + ": " + message);
-                        getMessagesFromUser(username);
-                    }
                 }
 
             } catch (IOException ex) {
@@ -156,6 +142,8 @@ public class Server {
         //     return result;
         // }
 
+<<<<<<< HEAD
+=======
         private void createUser(String username, String password) {
             String query = "INSERT INTO users (username, password) VALUES (?, ?)";
             try (Connection conn = connect();
@@ -191,6 +179,7 @@ public class Server {
         }
 
 
+>>>>>>> 424349e52c14e83e50ff1dcba1c454e27538dacc
 
         private void updateUserList(){
             String list = "/users " + String.join(", ", clients.keySet());
@@ -198,38 +187,35 @@ public class Server {
         }
 
         private static void getAllMessagesFromDatabase(PrintWriter out) {
-            String query = "SELECT m.text, m.created_at, u.username, c.group_name " +
-                           "FROM messages m " +
-                           "JOIN users u ON m.sender_user_id = u.id " +
-                           "JOIN chats c ON m.reciever_chat_id = c.id " +
-                           "ORDER BY m.created_at ASC";
+            String query = "SELECT user_id, content, timestamp FROM messages ORDER BY timestamp ASC";
             
             try (Connection conn = connect();
                  java.sql.PreparedStatement stmt = conn.prepareStatement(query)) {
-                
+        
                 java.sql.ResultSet rs = stmt.executeQuery();
-                
+        
                 out.println(">> Tutti i messaggi presenti nel database:");
-                
+        
                 boolean found = false;
                 while (rs.next()) {
                     found = true;
-                    String user = rs.getString("username");
-                    String group = rs.getString("group_name");
+                    String user = rs.getString("user_id");
                     String content = rs.getString("content");
                     String timestamp = rs.getTimestamp("timestamp").toString();
-                    out.println("[" + timestamp + "] " + user + " (" + group + "): " + content);
+                    out.println("[" + timestamp + "] " + user + ": " + content);
                 }
-                
+        
                 if (!found) {
                     out.println(">> Nessun messaggio presente nel database.");
                 }
-                
+        
             } catch (SQLException e) {
                 e.printStackTrace();
                 out.println(">> Errore nella query dei messaggi.");
             }
         }
+
+        
         
 
         private void commandList(String command){
@@ -307,65 +293,34 @@ public class Server {
         }
 
         private void getMessagesFromUser(String username) {
-            // Query to get the user_id based on the username
-            String userIdQuery = "SELECT id FROM users WHERE username = ?";
+            String query = "SELECT content, timestamp FROM messages WHERE user_id = ?";
             
             try (Connection conn = connect();
-                java.sql.PreparedStatement pstmt = conn.prepareStatement(userIdQuery)) {
-                
-                pstmt.setString(1, username);  // Set the username in the query
+                 java.sql.PreparedStatement pstmt = conn.prepareStatement(query)) {
+        
+                pstmt.setString(1, username); // Supponendo che user_id sia una stringa (username)
+        
                 java.sql.ResultSet rs = pstmt.executeQuery();
                 
-                if (rs.next()) {
-                    int userId = rs.getInt("id");
-                    
-                    // Now query the messages for this user_id
-                    String query = "SELECT text, created_at FROM messages WHERE sender_user_id = ?";
-                    try (PreparedStatement msgStmt = conn.prepareStatement(query)) {
-                        msgStmt.setInt(1, userId);  // Use the user_id in the messages query
-                        ResultSet msgRs = msgStmt.executeQuery();
-                        
-                        boolean hasMessages = false;
-                        while (msgRs.next()) {
-                            hasMessages = true;
-                            String msg = msgRs.getString("content");
-                            String timestamp = msgRs.getString("timestamp");
-                            out.println("[" + timestamp + "] " + username + ": " + msg);
-                        }
-                
-                        if (!hasMessages) {
-                            out.println(">> Nessun messaggio trovato per l'utente: " + username);
-                        }
-                    }
-                
-                } else {
-                    out.println(">> Utente non trovato: " + username);
+                boolean hasMessages = false;
+                while (rs.next()) {
+                    hasMessages = true;
+                    String msg = rs.getString("content");
+                    String timestamp = rs.getString("timestamp");
+                    out.println("[" + timestamp + "] " + username + ": " + msg);
                 }
-                
+        
+                if (!hasMessages) {
+                    out.println(">> Nessun messaggio trovato per l'utente: " + username);
+                }
+        
             } catch (SQLException e) {
                 e.printStackTrace();
                 out.println(">> Errore durante il recupero dei messaggi.");
             }
         }
+        
 
-        public static void saveMessageToDatabase(String text, int senderUserId, int receiverChatId) {
-            String query = "INSERT INTO messages (text, sender_user_id, reciever_chat_id) VALUES (?, ?, ?)";
-
-            try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
-                PreparedStatement preparedStatement = connection.prepareStatement(query)) {
-
-                preparedStatement.setString(1, text);
-                preparedStatement.setInt(2, senderUserId);
-                preparedStatement.setInt(3, receiverChatId);
-
-                preparedStatement.executeUpdate();
-                System.out.println("Message saved to database: " + text);
-
-            } catch (SQLException e) {
-                e.printStackTrace();
-                System.err.println("Failed to save message to database: " + e.getMessage());
-            }
-        }
 
         private void privateMessage(String user, String message){
             synchronized (clients) {
