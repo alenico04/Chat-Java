@@ -1,6 +1,6 @@
 package client;
 
-import client.homepage.HomePage;
+import client.homePage.*;
 import client.loginPage.Login;
 import client.alerts.ExitAlert;
 import javafx.application.Application;

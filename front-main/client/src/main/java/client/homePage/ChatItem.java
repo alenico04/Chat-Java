@@ -1,4 +1,4 @@
-package client.homepage;
+package client.homePage;
 
 import client.Chat;
 import client.chat.ChatPage;

@@ -6,5 +6,5 @@ module client {
     
     exports client;
     exports client.loginPage;
-    exports client.homepage;
+    exports client.homePage;
 }

@@ -1,4 +1,4 @@
-package client.homepage;
+package client.homePage;
 
 import client.Chat;
 import client.User;
@@ -11,7 +11,7 @@ public class HomePage extends BorderPane {
     private HBox header;
     private BorderPane body;
     private UserPanel userPanel;
-    private FlowPane chatList;
+    private ChatList chatList;
     private int headerHeight = 150;
     private int userPanelWidth = 300;
 
@@ -78,11 +78,11 @@ public class HomePage extends BorderPane {
         this.userPanel = userPanel;
     }
 
-    public FlowPane getChatList() {
+    public ChatList getChatList() {
         return chatList;
     }
 
-    public void setChatList(FlowPane chatList) {
+    public void setChatList(ChatList chatList) {
         this.chatList = chatList;
     }
 }
