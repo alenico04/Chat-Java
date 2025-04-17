@@ -18,7 +18,7 @@ import java.sql.ResultSet;
 public class Server {
     private static final int PORT = 42069;
     private static Map<String, PrintWriter> clients = new HashMap<>();
-    private static final String URL = "jdbc:postgresql://0.0.0.0:5432/chatdb";
+    private static final String URL = "jdbc:postgresql://localhost:5432/chatdb";
     private static final String USER = "postgres";
     private static final String PASSWORD = "postgres";
 
