@@ -1,4 +1,4 @@
-package client.homepage;
+package client.homePage;
 
 import client.User;
 import javafx.geometry.Pos;

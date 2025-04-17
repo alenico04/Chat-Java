@@ -1,6 +1,6 @@
 package client;
 
-import client.homepage.HomePage;
+import client.*;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
