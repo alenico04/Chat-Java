@@ -8,6 +8,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
@@ -52,6 +54,7 @@ public class Server {
         private PrintWriter out;
         private BufferedReader in;
         private String username;
+        private String password;
 
         public ClientHandler(Socket socket){
             this.socket = socket;
@@ -68,16 +71,14 @@ public class Server {
                     if (!clients.containsKey(username)){
                         out.println("ok");
                         break;
-<<<<<<< HEAD
-=======
                     } else {
+                        password = in.readLine();
                         createUser(username, password);
                         out.println(">> User created");
                         out.println("ok");
                         break;
->>>>>>> 424349e52c14e83e50ff1dcba1c454e27538dacc
                     }
-                    out.println("Username already taken");
+                    // out.println("Username already taken");
                 }
 
                 //message on user connection
@@ -142,12 +143,11 @@ public class Server {
         //     return result;
         // }
 
-<<<<<<< HEAD
-=======
+        @SuppressWarnings("unused")
         private void createUser(String username, String password) {
             String query = "INSERT INTO users (username, password) VALUES (?, ?)";
             try (Connection conn = connect();
-                 PreparedStatement pstmt = conn.prepareStatement(query)) {
+                PreparedStatement pstmt = conn.prepareStatement(query)) {
 
                 pstmt.setString(1, username);
                 pstmt.setString(2, password);  // Attenzione: assicurati che la password nel DB sia in chiaro o hashata nel modo corretto
@@ -159,6 +159,7 @@ public class Server {
             }
         }
 
+        @SuppressWarnings("unused")
         private boolean checkCredentials(String username, String password) {
             String query = "SELECT * FROM users WHERE username = ? AND password = ?";
 
@@ -177,9 +178,6 @@ public class Server {
                 return false;
             }
         }
-
-
->>>>>>> 424349e52c14e83e50ff1dcba1c454e27538dacc
 
         private void updateUserList(){
             String list = "/users " + String.join(", ", clients.keySet());

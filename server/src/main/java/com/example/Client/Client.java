@@ -38,6 +38,7 @@ public class Client {
     private JOptionPane alertWindow = new JOptionPane();
     
     private String username;
+    private String password;
 
     public Client() {
         frame = new JFrame("Spaiciat");
@@ -133,15 +134,10 @@ public class Client {
             String msg = "";
 
             do {
-<<<<<<< HEAD
-                username = alertWindow.showInputDialog(frame, !msg.isEmpty() ? msg : "Enter username: ");
-                if (username == null){
-=======
                 password = JOptionPane.showInputDialog(frame, jp);
                 username = uField.getText();
 
                 if (username == null || password == null){
->>>>>>> 424349e52c14e83e50ff1dcba1c454e27538dacc
                     System.exit(0);
                 }
                 else if(!controlUsername()){
