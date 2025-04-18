@@ -1,6 +1,10 @@
 package com.example.Client;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.BufferedReader;
@@ -8,7 +12,16 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-import javax.swing.*;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 public class Client {
     private static final String SERVER_IP = "192.168.172.193";
@@ -25,7 +38,7 @@ public class Client {
     private DefaultListModel userListModel;
     private JButton darkModeButton;
     private JOptionPane alertWindow = new JOptionPane();
-
+    
     private String username;
     private String password;
 
@@ -47,10 +60,10 @@ public class Client {
         panel.add(darkModeButton);
 
         panel.setBackground(Color.LIGHT_GRAY);
-
+        
         userListModel = new DefaultListModel<>();
         userList = new JList<>(userListModel);
-
+        
         JPanel userListPanel = new JPanel();
         userListPanel.add(userList);
         userListPanel.setPreferredSize(new Dimension(225, 0));

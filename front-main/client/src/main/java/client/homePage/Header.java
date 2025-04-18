@@ -1,4 +1,4 @@
-package client.homepage;
+package client.homePage;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;

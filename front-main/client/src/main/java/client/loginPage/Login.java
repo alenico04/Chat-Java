@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Arrays;
 import java.util.function.Consumer;
+import javafx.scene.input.KeyCode;
 
 public class Login extends BorderPane {
     private LoginHeader header;
@@ -24,6 +25,7 @@ public class Login extends BorderPane {
         createComponents();
         setupLayout();
         setupHandlers();
+        setupKeyboardNavigation();
     }
 
     private void createComponents() {
@@ -105,5 +107,47 @@ public class Login extends BorderPane {
         }
         
         return isValid;
+    }
+
+    private void setupKeyboardNavigation() {
+        form.getUsernameField().setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.TAB) {
+                event.consume(); // Prevent default tab behavior
+                form.getPasswordField().requestFocus();
+            }
+        });
+
+        form.getPasswordField().setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.TAB) {
+                event.consume();
+                if (event.isShiftDown()) {
+                    form.getUsernameField().requestFocus();
+                } else {
+                    buttons.getContinueButton().requestFocus();
+                }
+            }
+        });
+
+        buttons.getContinueButton().setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.TAB) {
+                event.consume();
+                if (event.isShiftDown()) {
+                    form.getPasswordField().requestFocus();
+                } else {
+                    buttons.getCancelButton().requestFocus();
+                }
+            }
+        });
+
+        buttons.getCancelButton().setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.TAB) {
+                event.consume();
+                if (event.isShiftDown()) {
+                    buttons.getContinueButton().requestFocus();
+                } else {
+                    form.getUsernameField().requestFocus();
+                }
+            }
+        });
     }
 }
