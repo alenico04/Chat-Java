@@ -4,7 +4,7 @@ public class User {
     private int id;
     private String username;
     private String profilePicture;
-    private String type = "user";
+    public final String type = "user";
 
     public User(int id, String username){
         this(id, username, null);
