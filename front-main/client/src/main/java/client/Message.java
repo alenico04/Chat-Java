@@ -9,7 +9,7 @@ public class Message {
     private Date created_at;
     private String username;
     private String user_id;
-    private String type = "message";
+    public final String type = "message";
 
     public Message(int chatId, String text, Date created_at, String username, String user_id){
         this.chatId = chatId;

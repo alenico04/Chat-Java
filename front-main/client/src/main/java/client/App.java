@@ -12,15 +12,15 @@ public class App extends Application {
     private Stage stage;
     private Scene loginScene;
     private Scene homeScene;
-    private Chat[] chats;
-    private User currentUser;
     private ExitAlert exitAlert;
 
     @Override
     public void start(Stage stage) throws Exception {
         this.stage = stage;
-        
-        initializeLogin();
+        SceneChanger.setStage(stage);
+        DataCaller.connect();
+        //TODO: IMPLEMENTARE I METODI DI SceneChanger e DataCaller
+        initializeLogin(); 
         setupStage();
         
         // Initialize the exit alert after the stage is set up
@@ -53,6 +53,13 @@ public class App extends Application {
     }
 
     private void switchToHomePage(String username) {
+
+
+
+
+
+
+
         // Initialize chat and user data
         Chat[] chats = new Chat[10];
         for (int i = 0; i < chats.length; i++) {
