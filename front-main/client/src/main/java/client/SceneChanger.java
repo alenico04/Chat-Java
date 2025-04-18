@@ -1,7 +1,7 @@
 package client;
 
 import client.chat.ChatPage;
-import client.homepage.HomePage;
+import client.homePage.HomePage;
 import client.loginPage.Login;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
