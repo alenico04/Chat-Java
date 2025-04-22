@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.BufferedReader;
@@ -14,6 +15,7 @@ import java.net.Socket;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -133,6 +135,17 @@ public class Client {
 
             String msg = "";
 
+            JPanel jp = new JPanel();
+            JLabel uLabel = new JLabel("Enter username:");
+            JTextField uField = new JTextField();
+            JLabel pLabel = new JLabel("Enter password:");
+            jp.add(uLabel);
+            jp.add(uField);
+            jp.add(pLabel);
+            jp.setLayout(new GridLayout(4,1));
+            uField.setEditable(true);
+
+
             do {
                 password = JOptionPane.showInputDialog(frame, jp);
                 username = uField.getText();
@@ -141,7 +154,7 @@ public class Client {
                     System.exit(0);
                 }
                 else if(!controlUsername()){
-                    out.println(username);
+                    out.println(username + ":" + password);
                     msg = in.readLine();
                 }
             } while (!msg.equals("ok"));
