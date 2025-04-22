@@ -1,8 +1,9 @@
-package client.homepage;
+package client.homePage;
 
 import client.Chat;
 import client.User;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 
 public class HomePage extends BorderPane {
@@ -18,6 +19,7 @@ public class HomePage extends BorderPane {
         Header header = new Header(headerHeight);
         BorderPane body = new BorderPane();
         body.prefHeightProperty().bind(this.heightProperty().subtract(this.headerHeight));
+        body.setStyle("-fx-background-color:rgb(78, 78, 78);");
 
         UserPanel userPanel = new UserPanel(currentUser, this.userPanelWidth);
         ChatList chatList = new ChatList(chats);

@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Arrays;
 import java.util.function.Consumer;
+import javafx.scene.input.KeyCode;
 
 public class Login extends BorderPane {
     private LoginHeader header;
@@ -24,6 +25,7 @@ public class Login extends BorderPane {
         createComponents();
         setupLayout();
         setupHandlers();
+        setupKeyboardNavigation();
     }
 
     private void createComponents() {
@@ -45,6 +47,29 @@ public class Login extends BorderPane {
     private void setupHandlers() {
         buttons.getContinueButton().setOnAction(e -> handleLogin());
         buttons.getCancelButton().setOnAction(e -> handleCancel());
+
+        // Add real-time validation for username
+        form.getUsernameField().textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!isValidUsername(newValue)) {
+                form.getUsernameError().setText(
+                    newValue.trim().isEmpty() ? "Username required" : 
+                    newValue.length() < 4 ? "Username must be at least 4 characters long" :
+                    newValue.length() > 127 ? "Username must be less than 127 characters" :
+                    containsReservedWord(newValue) ? "Username contains reserved words" :
+                    "Username must contain only letters, numbers, - or _"
+                );
+                form.getUsernameError().setVisible(true);
+            } else {
+                form.getUsernameError().setVisible(false);
+            }
+        });
+    }
+
+    // Add helper method to check for reserved words
+    private static boolean containsReservedWord(String username) {
+        String lowerUsername = username.toLowerCase();
+        return reservedWords.stream()
+            .anyMatch(word -> lowerUsername.contains(word.toLowerCase()));
     }
 
     public void setOnLoginSuccess(Consumer<String> callback) {
@@ -76,11 +101,21 @@ public class Login extends BorderPane {
     }
 
     private static boolean isValidUsername(String username) {
-        return username != null 
-            && !username.trim().isEmpty()
-            && username.length() >= 4
+        if (username == null || username.trim().isEmpty()) {
+            return false;
+        }
+
+        String lowerUsername = username.toLowerCase();
+        
+        // Check if username contains any reserved word
+        for (String reserved : reservedWords) {
+            if (lowerUsername.contains(reserved.toLowerCase())) {
+                return false;
+            }
+        }
+
+        return username.length() >= 4 
             && username.length() <= 127
-            && !reservedWords.contains(username.toLowerCase())
             && username.matches("^[a-zA-Z0-9_-]+$");
     }
 
@@ -105,5 +140,47 @@ public class Login extends BorderPane {
         }
         
         return isValid;
+    }
+
+    private void setupKeyboardNavigation() {
+        form.getUsernameField().setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.TAB) {
+                event.consume(); // Prevent default tab behavior
+                form.getPasswordField().requestFocus();
+            }
+        });
+
+        form.getPasswordField().setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.TAB) {
+                event.consume();
+                if (event.isShiftDown()) {
+                    form.getUsernameField().requestFocus();
+                } else {
+                    buttons.getContinueButton().requestFocus();
+                }
+            }
+        });
+
+        buttons.getContinueButton().setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.TAB) {
+                event.consume();
+                if (event.isShiftDown()) {
+                    form.getPasswordField().requestFocus();
+                } else {
+                    buttons.getCancelButton().requestFocus();
+                }
+            }
+        });
+
+        buttons.getCancelButton().setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.TAB) {
+                event.consume();
+                if (event.isShiftDown()) {
+                    buttons.getContinueButton().requestFocus();
+                } else {
+                    form.getUsernameField().requestFocus();
+                }
+            }
+        });
     }
 }

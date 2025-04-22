@@ -1,38 +1,79 @@
 package client;
 
-import client.homepage.HomePage;
+import client.homePage.*;
 import client.loginPage.Login;
+import client.addProfilePicture.ProfilePictureSelect;
 import client.alerts.ExitAlert;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import java.util.concurrent.CompletableFuture;
 
 public class App extends Application {
     private Stage stage;
     private Scene loginScene;
     private Scene homeScene;
-    private Chat[] chats;
-    private User currentUser;
     private ExitAlert exitAlert;
+    private volatile boolean isClosing = false;
 
     @Override
     public void start(Stage stage) throws Exception {
         this.stage = stage;
-        
-        initializeLogin();
+        SceneChanger.setStage(stage);
+        DataCaller.connect();
+        //TODO: IMPLEMENTARE I METODI DI SceneChanger e DataCaller
+        initializeLogin(); 
         setupStage();
         
-        // Initialize the exit alert after the stage is set up
         Platform.runLater(() -> {
             this.exitAlert = new ExitAlert(stage);
-            // Add close handler after everything is initialized
             stage.setOnCloseRequest(event -> {
                 event.consume();
-                if (exitAlert != null) {
-                    exitAlert.showAlert(stage);
+                if (!isClosing && exitAlert != null) {
+                    handleApplicationClose();
                 }
             });
+        });
+    }
+
+    private void handleApplicationClose() {
+        if (isClosing) return;
+        
+        isClosing = true;
+        CompletableFuture.runAsync(() -> {
+            Platform.runLater(() -> {
+                try {
+                    if (exitAlert != null) {
+                        exitAlert.showAlert().thenAccept(shouldExit -> {
+                            if (shouldExit) {
+                                cleanupAndExit();
+                            } else {
+                                isClosing = false;
+                            }
+                        });
+                    }
+                } catch (Exception e) {
+                    cleanupAndExit();
+                }
+            });
+        });
+    }
+
+    private void cleanupAndExit() {
+        Platform.runLater(() -> {
+            try {
+                if (exitAlert != null) {
+                    exitAlert.cleanup();
+                }
+                if (stage != null) {
+                    stage.hide();
+                }
+                Platform.exit();
+                System.exit(0);
+            } catch (Exception e) {
+                System.exit(1);
+            }
         });
     }
 
@@ -53,25 +94,32 @@ public class App extends Application {
     }
 
     private void switchToHomePage(String username) {
-        // Initialize chat and user data
-        Chat[] chats = new Chat[10];
-        for (int i = 0; i < chats.length; i++) {
-            String chatName = "paolo " + String.valueOf(i);
-            chats[i] = new Chat(i, chatName, "https://www.striscialanotizia.mediaset.it/wp-content/uploads/2023/07/Gabibbo.jpeg");
-        }
-        User currentUser = new User(0, username, "https://www.striscialanotizia.mediaset.it/wp-content/uploads/2023/07/Gabibbo.jpeg");
+        // Show profile picture selection dialog before creating HomePage
+        ProfilePictureSelect pictureSelect = new ProfilePictureSelect(stage);
+        pictureSelect.showDialog().thenAccept(selectedImageUrl -> {
+            Platform.runLater(() -> {
+                // Initialize chat and user data
+                Chat[] chats = new Chat[10];
+                for (int i = 0; i < chats.length; i++) {
+                    String chatName = "paolo " + String.valueOf(i);
+                    chats[i] = new Chat(i, chatName, "https://www.striscialanotizia.mediaset.it/wp-content/uploads/2023/07/Gabibbo.jpeg");
+                }
+                
+                // Use selected image URL for user's profile picture
+                User currentUser = new User(0, username, selectedImageUrl);
 
-        HomePage homePage = new HomePage(currentUser, chats);
-        // ChatPage ChatPage = new ChatPage(currentUser, null, null);
-        
-        homeScene = new Scene(homePage);    
-        stage.setScene(homeScene);
+                HomePage homePage = new HomePage(currentUser, chats);
+                homeScene = new Scene(homePage);    
+                stage.setScene(homeScene);
+            });
+        });
     }
 
     @Override
     public void stop() {
-        // Clean up resources when the application is closing
-        Platform.exit();
+        if (!isClosing) {
+            cleanupAndExit();
+        }
     }
 
     public static void main(String[] args) {
