@@ -9,6 +9,7 @@ import java.net.Socket;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
@@ -83,11 +84,14 @@ public class Server {
                         out.println("ok");
                         break;
                     } else {
+                        password = in.readLine();
                         createUser(username, password);
                         //out.println(">> User created");
                         out.println("ok");
                         break;
                     }
+                    // out.println("Username already taken");
+
                 }
 
                 //message on user connection
@@ -162,7 +166,6 @@ public class Server {
                                           // modo corretto
 
             ResultSet rs = pstmt.executeQuery();
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -187,6 +190,7 @@ public class Server {
             return false;
         }
     }
+
 
     private void updateUserList() {
         String list = "/users " + String.join(", ", clients.keySet());
