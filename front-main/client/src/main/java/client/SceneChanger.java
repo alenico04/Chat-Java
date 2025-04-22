@@ -1,49 +1,25 @@
 package client;
 
-import client.chat.ChatPage;
-import client.homePage.HomePage;
-import client.loginPage.Login;
+import client.*;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+
 public class SceneChanger {
-    private static Stage stage;
+    private Stage stage;
 
-    // Metodo statico per impostare lo stage (alternativa al costruttore)
-    public static void setStage(Stage stage) {
-        SceneChanger.stage = stage;
+    public SceneChanger(Stage stage) {
+        this.stage = stage;
     }
 
-    private static void sceneChangerStateVerify() {
-        // Verifica che lo stage sia stato impostato
-        if (stage == null) {
-            throw new IllegalStateException("Stage non impostato. Chiamare prima setStage() o utilizzare il costruttore.");
-        }
-    } 
+    // public static void setHomePage() {
 
-    public static void setHomePage() {
-        sceneChangerStateVerify();
+    //     User currentUserData = DataCaller.currentUser();
+    //     Chat[] chatsData = DataCaller.chats();
 
-        User currentUserData = DataCaller.getCurrentUser();
-        Chat[] chatsData = DataCaller.getChats();
+    //     HomePage homePage = new HomePage(currentUserData, chatsData);
+    //     Scene scene = new Scene(homePage);
 
-        HomePage homePage = new HomePage(currentUserData, chatsData);
-        Scene scene = new Scene(homePage);
-
-        stage.setScene(scene);
-    }
-
-    public static void setLoginPage() {
-        sceneChangerStateVerify();
-
-        Login login = new Login();
-        Scene scene = new Scene(login);
-        stage.setScene(scene);
-    }
-
-    public static void setChatPage(int chatId) {
-        sceneChangerStateVerify();
-
-        // ChatPage chatPage = new ChatPage();
-    }
+    //     this.stage.setScene(scene);
+    // }
 }

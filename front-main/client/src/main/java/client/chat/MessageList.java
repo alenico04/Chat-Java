@@ -56,8 +56,7 @@ public class MessageList extends ScrollPane {
                 messageContent.getChildren().addAll(userName, messageTextFlow);
                 
                 // Controllo se il messaggio è dell'utente corrente
-                // boolean isCurrentUser = message.getUserId().equals(currentUser.getId());
-                boolean isCurrentUser = message.getUserId() == currentUser.getId();
+                boolean isCurrentUser = message.getUser_id().equals(currentUser.getId());
                 
                 if (isCurrentUser) {
                     // Messaggio dell'utente corrente (a destra)

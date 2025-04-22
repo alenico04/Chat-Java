@@ -5,7 +5,7 @@ public class Chat {
     private String name; 
     private String photo;
     private User[] users;
-    public final String type = "chat";
+    private String type = "chat";
     // ---------------------- COSTRUTTORI  
 
     public Chat(int id, String name, String photo) {

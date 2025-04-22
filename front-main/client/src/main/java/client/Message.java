@@ -3,19 +3,20 @@ package client;
 import java.util.Date;
 
 public class Message {
+
     private int chatId;
     private String text;
     private Date created_at;
     private String username;
-    private int userId;
-    public final String type = "message";
+    private String user_id;
+    private String type = "message";
 
-    public Message(int chatId, String text, Date created_at, String username, int userId){
+    public Message(int chatId, String text, Date created_at, String username, String user_id){
         this.chatId = chatId;
         this.text = text;
         this.created_at = created_at;
         this.username = username;
-        this.userId = userId;
+        this.user_id = user_id;
     }
 
     // ---------------------- SETTER e GETTER
@@ -43,10 +44,10 @@ public class Message {
     public void setUsername(String username) {
         this.username = username;
     }
-    public int getUserId() {
-        return userId;
+    public String getUser_id() {
+        return user_id;
     }
-    public void setUserId(int user_id) {
-        this.userId = user_id;
+    public void setUser_id(String user_id) {
+        this.user_id = user_id;
     }
 }
