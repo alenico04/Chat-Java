@@ -10,10 +10,13 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.example.Classes.User;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Server {
     private static final int PORT = 42069;
@@ -21,6 +24,9 @@ public class Server {
     private static final String URL = "jdbc:postgresql://db:5432/chatdb"; // DB hostname, porta e nome del database
     private static final String USER = "postgres";
     private static final String PASSWORD = "postgres";
+    
+    // testing
+    private static ObjectMapper objectMapper = new ObjectMapper();
 
     public static void main(String[] args) {
         connect();
@@ -37,7 +43,6 @@ public class Server {
 
     private static Connection connect(){
         try {
-
             Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
             System.out.println("✅ Connessione riuscita!");
             return conn;
@@ -52,9 +57,8 @@ public class Server {
         private Socket socket;
         private PrintWriter out;
         private BufferedReader in;
-        private String username;
+        private User user;
         private String accesso;
-        private String password;
 
         public ClientHandler(Socket socket){
             this.socket = socket;
@@ -62,30 +66,25 @@ public class Server {
 
         public void run() {
             try {
+                // socket
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 out = new PrintWriter(socket.getOutputStream(), true);
-                
-                //username check
-                while (true) {
-                    accesso = in.readLine();
-                    String[] parts = accesso.split(":", 2);
-                    if (parts.length < 2) {
-                        out.println(">> Formato non valido. Usa: username:password");
-                        continue;
-                    }
-                    username = parts[0];
-                    password = parts[1];
 
-                    if (clients.containsKey(username)) {
+                // username check
+                while (true) {
+                    accesso = in.readLine(); // ora è un json
+                    // conversione
+                    user = objectMapper.readValue(accesso, User.class);
+                    
+                    if (clients.containsKey(user.getUsername())) {
                         out.println(">> Username già connesso");
                         continue;
                     }
-
-                    if (checkCredentials(username, password)) {
+                    if (checkCredentials(user.getUsername(), user.getPassword())) {
                         out.println("ok");
                         break;
                     } else {
-                        createUser(username, password);
+                        createUser(user.getUsername(), user.getPassword());
                         //out.println(">> User created");
                         out.println("ok");
                         break;
@@ -94,10 +93,10 @@ public class Server {
 
                 //message on user connection
                 synchronized (clients) {
-                    clients.put(username, out);
+                    clients.put(user.getUsername(), out);
                     // write connection message on the chat
-                    System.out.println(">> Server: " + username + " connected to the server");
-                    broadcastMessage(">> Server: " + username + " joined the chat");
+                    System.out.println(">> Server: " + user.getUsername() + " connected to the server");
+                    broadcastMessage(">> Server: " + user.getUsername() + " joined the chat");
                     // send to clients the name of the connected users
                     updateUserList();
                 }
@@ -106,13 +105,22 @@ public class Server {
                 String message;
                 while ((message = in.readLine()) != null){
                     System.out.println("Ricevuto: " + message);
+                    /*
+                     * Message new_message = objectMapper.readValue(message);
+                     * 
+                     * if (new_message.text.startsWith("/")){
+                     *      ...
+                     * } else {
+                     *      broadcastMessage(new_message);
+                     * }
+                     */
 
                     if (message.startsWith("/")){
                         commandList(message.split("/")[1]);
                     }
                     else {
-                        broadcastMessage(username + ": " + message);
-                        getMessagesFromUser(username);
+                        broadcastMessage(user.getUsername() + ": " + message);
+                        getMessagesFromUser(user.getUsername());
                     }
                 }
 
@@ -121,11 +129,11 @@ public class Server {
             } finally {
                 try {
                     socket.close();
-                    clients.remove(username);
+                    clients.remove(user.getUsername());
                     updateUserList();
                 } catch (IOException ex) {
                     ex.printStackTrace();
-                    clients.remove(username);
+                    clients.remove(user.getUsername());
                     updateUserList();
                 }
             }
@@ -156,6 +164,10 @@ public class Server {
         //     return result;
         // }
 
+        private int getUserId() {
+            return user.getId();
+        }
+
         private void createUser(String username, String password) {
             String query = "INSERT INTO users (username, password) VALUES (?, ?)";
             try (Connection conn = connect();
@@ -165,13 +177,15 @@ public class Server {
                 pstmt.setString(2, password);  // Attenzione: assicurati che la password nel DB sia in chiaro o hashata nel modo corretto
 
                 ResultSet rs = pstmt.executeQuery();
+                System.out.println("hello");
+                System.out.println((char) rs.getInt(1));
 
             } catch (SQLException e) {
                 e.printStackTrace();
             }
         }
 
-        private boolean checkCredentials(String username, String password) {
+        private boolean checkCredentials(String username, String password) throws JsonProcessingException {
             String query = "SELECT * FROM users WHERE username = ? AND password = ?";
 
             try (Connection conn = connect();
@@ -179,9 +193,15 @@ public class Server {
 
                 pstmt.setString(1, username);
                 pstmt.setString(2, password);  // Attenzione: assicurati che la password nel DB sia in chiaro o hashata nel modo corretto
-
+                
                 ResultSet rs = pstmt.executeQuery();
 
+                if(rs.next()){
+                    user = new User(rs.getInt("id"), rs.getString("username"), rs.getString("password"), rs.getString("link_profile_photo"), "user");
+                    System.out.println(objectMapper.writeValueAsString(user));
+                    //System.out.println(id);
+                }
+                
                 return rs.next();  // ritorna true se esiste una riga (credenziali valide)
 
             } catch (SQLException e) {
@@ -252,7 +272,7 @@ public class Server {
                 }
                 case "p" -> {
                     String[] privateMessage = formattedMessage[1].split(" ", 2);
-                    privateMessage(privateMessage[0], username + ": (whisper) " + privateMessage[1]);
+                    privateMessage(privateMessage[0], user.getUsername() + ": (whisper) " + privateMessage[1]);
                 }
                 case "?" -> {
                     out.println("Commands available:");
@@ -274,6 +294,12 @@ public class Server {
         private static void broadcastMessage(String message) {
             synchronized (clients) {
                 for (PrintWriter printWriter : clients.values()) {
+                    /* broadcasMessage(Message message)
+                     * 
+                     * String json = objectMapper.writeValueAsString(message)
+                     * printWriter.println(json)
+                     * 
+                     */
                     printWriter.println(message);
                 }
             }
