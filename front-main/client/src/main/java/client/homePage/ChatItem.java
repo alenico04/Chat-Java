@@ -1,14 +1,12 @@
 package client.homePage;
 
 import client.Chat;
-import client.chat.ChatPage;
+import client.utils.ImageUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
-import javafx.scene.shape.Circle;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 /**
@@ -29,32 +27,14 @@ public class ChatItem extends HBox {
 
         // Create circular photo
         int photoSize = 100;
-        ImageView photoView = new ImageView();
-        
-        try {
-            // Try to load the chat photo
-            Image chatImage = new Image(chat.getPhoto(), true);
-            photoView.setImage(chatImage);
-        } catch (Exception e) {
-            // If image loading fails, could use a default image here
-            System.err.println("Failed to load chat image: " + e.getMessage());
-        }
-        
-        photoView.setFitWidth(photoSize);
-        photoView.setFitHeight(photoSize);
-        
-        // Create a circle clip for the image
-        Circle clip = new Circle(photoSize / 2);
-        clip.setCenterX(photoSize / 2);
-        clip.setCenterY(photoSize / 2);
-        photoView.setClip(clip);
-        
+        StackPane photoContainer = ImageUtils.createCircularImage(chat.getPhoto(), photoSize);
+
         // Create chat name label
         Label nameLabel = new Label(chat.getName());
         nameLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: black;");
 
         // Add components to the chat item
-        this.getChildren().addAll(photoView, nameLabel);
+        this.getChildren().addAll(photoContainer, nameLabel);
 
         // Make the chat item clickable
         this.setOnMouseClicked(event -> handleChatItemClick());

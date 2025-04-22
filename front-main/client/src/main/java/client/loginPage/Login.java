@@ -47,6 +47,29 @@ public class Login extends BorderPane {
     private void setupHandlers() {
         buttons.getContinueButton().setOnAction(e -> handleLogin());
         buttons.getCancelButton().setOnAction(e -> handleCancel());
+
+        // Add real-time validation for username
+        form.getUsernameField().textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!isValidUsername(newValue)) {
+                form.getUsernameError().setText(
+                    newValue.trim().isEmpty() ? "Username required" : 
+                    newValue.length() < 4 ? "Username must be at least 4 characters long" :
+                    newValue.length() > 127 ? "Username must be less than 127 characters" :
+                    containsReservedWord(newValue) ? "Username contains reserved words" :
+                    "Username must contain only letters, numbers, - or _"
+                );
+                form.getUsernameError().setVisible(true);
+            } else {
+                form.getUsernameError().setVisible(false);
+            }
+        });
+    }
+
+    // Add helper method to check for reserved words
+    private static boolean containsReservedWord(String username) {
+        String lowerUsername = username.toLowerCase();
+        return reservedWords.stream()
+            .anyMatch(word -> lowerUsername.contains(word.toLowerCase()));
     }
 
     public void setOnLoginSuccess(Consumer<String> callback) {
@@ -78,11 +101,21 @@ public class Login extends BorderPane {
     }
 
     private static boolean isValidUsername(String username) {
-        return username != null 
-            && !username.trim().isEmpty()
-            && username.length() >= 4
+        if (username == null || username.trim().isEmpty()) {
+            return false;
+        }
+
+        String lowerUsername = username.toLowerCase();
+        
+        // Check if username contains any reserved word
+        for (String reserved : reservedWords) {
+            if (lowerUsername.contains(reserved.toLowerCase())) {
+                return false;
+            }
+        }
+
+        return username.length() >= 4 
             && username.length() <= 127
-            && !reservedWords.contains(username.toLowerCase())
             && username.matches("^[a-zA-Z0-9_-]+$");
     }
 
