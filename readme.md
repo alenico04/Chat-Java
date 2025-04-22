@@ -2,12 +2,12 @@
 
 ## Lista di chiamate possibili
 
-### Login/Registrazione
+### Login
 
 #### Client
 - Invio username e password
   ```json
-  { "type": "loginRequest", "username": "...", "password": "...", "profilePicture": "..." }
+  { "type": "loginRequest", "username": "...", "password": "..." }
   ```
 
 #### Server
@@ -17,15 +17,36 @@
     { "type": "loginError", "message": "..." }
     ```
 - **Successo**
-  - Invia lo user appena registrato
+  - Invia lo user appena loggato
     ```json
     { "type": "loggedUser", "id": "...", "username": "...", "profilePicture": "..." }
     ```
-  - Invia le chat associate allo user appena registrato
+  - Invia le chat associate allo user appena loggato
     ```json
     { "type": "chat", "id": "...", "name": "...", "photo": "...", "users": [...] }
     ```
     > Nota: `users` può essere null o un array di oggetti `[{"id":"...","username":"..."}, ...]`
+
+
+### Registrazione
+
+#### Client
+- Invio username, password e immagine profilo
+  ```json
+  { "type": "registrationRequest", "username": "...", "password": "...", "profilePicture": "..." }
+  ```
+
+#### Server
+- **Errore**
+  - Indica l'errore avvenuto durante login/registrazione
+    ```json
+    { "type": "registerError", "message": "..." }
+    ```
+- **Successo**
+  - Invia lo user appena registrato
+    ```json
+    { "type": "registerSucces", "message": "..." }
+    ```
 
 ### Homepage
 
