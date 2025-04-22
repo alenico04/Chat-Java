@@ -14,16 +14,16 @@ public class App extends Application {
     private Stage stage;
     private Scene loginScene;
     private Scene homeScene;
-    private Chat[] chats;
-    private User currentUser;
     private ExitAlert exitAlert;
     private volatile boolean isClosing = false;
 
     @Override
     public void start(Stage stage) throws Exception {
         this.stage = stage;
-        
-        initializeLogin();
+        SceneChanger.setStage(stage);
+        DataCaller.connect();
+        //TODO: IMPLEMENTARE I METODI DI SceneChanger e DataCaller
+        initializeLogin(); 
         setupStage();
         
         Platform.runLater(() -> {
