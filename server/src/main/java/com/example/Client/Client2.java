@@ -1,10 +1,6 @@
 package com.example.Client;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.GridLayout;
+import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.BufferedReader;
@@ -12,18 +8,9 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 
-public class Client {
+public class Client2 {
     private static final String SERVER_IP = "192.168.172.193";
     private static final int PORT = 42069;
 
@@ -38,21 +25,21 @@ public class Client {
     private DefaultListModel userListModel;
     private JButton darkModeButton;
     private JOptionPane alertWindow = new JOptionPane();
-    
+
     private String username;
     private String password;
 
-    public Client() {
+    public Client2() {
         frame = new JFrame("Spaiciat");
         chatArea = new JTextArea(20, 40);
         chatArea.setFont(new Font("Consolas", Font.PLAIN, 15));
         chatArea.setEditable(false);
         chatArea.setBackground(Color.WHITE);
-        messageField = new JTextField("Enter message", 50);
+        messageField = new JTextField( "Enter message", 50);
         messageField.setFont(new Font("Consolas", Font.PLAIN, 15));
         messageField.setForeground(Color.GRAY);
         sendButton = new JButton("Send");
-        darkModeButton = new JButton("Switch mode");
+        darkModeButton = new JButton("Swith mode");
 
         JPanel panel = new JPanel();
         panel.add(messageField);
@@ -60,10 +47,10 @@ public class Client {
         panel.add(darkModeButton);
 
         panel.setBackground(Color.LIGHT_GRAY);
-        
+
         userListModel = new DefaultListModel<>();
         userList = new JList<>(userListModel);
-        
+
         JPanel userListPanel = new JPanel();
         userListPanel.add(userList);
         userListPanel.setPreferredSize(new Dimension(225, 0));
@@ -100,10 +87,26 @@ public class Client {
 
         sendButton.addActionListener(event -> sendMessage());
         messageField.addActionListener(event -> sendMessage());
-        darkModeButton.addActionListener(event -> toggleDarkMode());
+        darkModeButton.addActionListener(event -> {
+            if(chatArea.getBackground() == Color.WHITE){
+                chatArea.setBackground(Color.BLACK);
+                chatArea.setForeground(Color.WHITE);
+                userListPanel.setBackground(Color.DARK_GRAY);
+                userListPanel.setForeground(Color.WHITE);
+                panel.setBackground(Color.GRAY);
+            }
+            else {
+                chatArea.setBackground(Color.WHITE);
+                chatArea.setForeground(Color.BLACK);
+                userListPanel.setBackground(Color.LIGHT_GRAY);
+                userListPanel.setForeground(Color.BLACK);
+                panel.setBackground(Color.LIGHT_GRAY);
+            }
+
+        });
     }
 
-    private void sendMessage() {
+    private void sendMessage(){
         String message = messageField.getText().trim();
         if (!message.isEmpty() && !(messageField.getForeground() == Color.GRAY)){
             out.println(message);
@@ -111,56 +114,50 @@ public class Client {
         }
     }
 
-    private void toggleDarkMode() {
-        if (chatArea.getBackground() == Color.WHITE) {
-            chatArea.setBackground(Color.BLACK);
-            chatArea.setForeground(Color.WHITE);
-            userList.setBackground(Color.DARK_GRAY);
-            userList.setForeground(Color.WHITE);
-        } else {
-            chatArea.setBackground(Color.WHITE);
-            chatArea.setForeground(Color.BLACK);
-            userList.setBackground(Color.LIGHT_GRAY);
-            userList.setForeground(Color.BLACK);
-        }
-    }
-
-    private void connectToServer() {
+    private void connectToServer(){
         try {
             Socket socket = new Socket(SERVER_IP, PORT);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
 
-            JButton registerButton = new JButton("Register");
-            registerButton.addActionListener(event -> registerUser());
-            JPanel registerPanel = new JPanel();
-            registerPanel.add(registerButton);
-            frame.getContentPane().add(registerPanel, BorderLayout.NORTH);
-
             String msg = "";
 
+            JPanel jp = new JPanel();
+            JLabel uLabel = new JLabel("Enter username:");
+            JTextField uField = new JTextField();
+            JLabel pLabel = new JLabel("Enter password:");
+            jp.add(uLabel);
+            jp.add(uField);
+            jp.add(pLabel);
+            jp.setLayout(new GridLayout(4,1));
+            uField.setEditable(true);
+
+
             do {
-                username = alertWindow.showInputDialog(frame, !msg.isEmpty() ? msg : "Enter username: ");
+                password = JOptionPane.showInputDialog(frame, jp);
+                username = uField.getText();
+
                 if (username == null){
                     System.exit(0);
                 }
                 else if(!controlUsername()){
-                    out.println(username);
+                    out.println(username + ":" + password);
                     msg = in.readLine();
                 }
             } while (!msg.equals("ok"));
 
-            // Gestione della chat
             new Thread(() -> {
                 try {
                     String serverMessage;
-                    while ((serverMessage = in.readLine()) != null) {
-                        if (serverMessage.startsWith("/users ")) {
+                    while ((serverMessage = in.readLine()) != null){
+                        if (serverMessage.startsWith("/users ")){
                             updateUserList(serverMessage.replace("/users ", ""));
-                        } else {
+                        }
+                        else {
                             chatArea.append(serverMessage + "\n");
                         }
                     }
+
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -171,49 +168,20 @@ public class Client {
         }
     }
 
-    private void registerUser() {
-        while (true) {
-            String newUsername = JOptionPane.showInputDialog(frame, "Choose a username:");
-            if (newUsername == null) return;
-            String password = JOptionPane.showInputDialog(frame, "Choose a password:");
-            if (password == null) return;
-            String confirmPassword = JOptionPane.showInputDialog(frame, "Confirm password:");
-            if (confirmPassword == null) return;
-    
-            if (!password.equals(confirmPassword)) {
-                JOptionPane.showMessageDialog(frame, "Passwords do not match!", "Error", JOptionPane.ERROR_MESSAGE);
-                continue;
-            }
-    
-            out.println("/register" + " " + newUsername + " " + password);
-            String response = null;
-            try {
-                response = in.readLine();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            if (response != null && response.equals("ok")) {
-                JOptionPane.showMessageDialog(frame, "Registration successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                break;
-            } else {
-                JOptionPane.showMessageDialog(frame, response != null ? response : "Unknown error", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-    }
-
     private boolean controlUsername() {
         boolean result = false;
         if (username.equals("")) {
             result = true;
             alertWindow.showMessageDialog(frame, "You can't write an empty username", "Error", 0);
-        } else if (username.contains(" ")) {
+        }
+        else if (username.contains(" ")){
             username = username.replaceAll("\\s+", "");
         }
 
         return result;
     }
 
-    private void updateUserList(String message) {
+    private void updateUserList(String message){
         userListModel.clear();
         for (String username : message.split(", ")) {
             userListModel.addElement(username);
