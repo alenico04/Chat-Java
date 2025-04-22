@@ -21,9 +21,15 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
+import com.example.Classes.User;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class Client {
-    private static final String SERVER_IP = "192.168.172.193";
+    private static final String SERVER_IP = "127.0.0.1";
     private static final int PORT = 42069;
+
+    // testing
+    private User user;
 
     private PrintWriter out;
     private BufferedReader in;
@@ -39,6 +45,9 @@ public class Client {
     
     private String username;
     private String password;
+
+    // testing
+    ObjectMapper objectMapper = new ObjectMapper();
 
     public Client() {
         frame = new JFrame("Spaiciat");
@@ -103,6 +112,10 @@ public class Client {
 
     private void sendMessage() {
         String message = messageField.getText().trim();
+        //Message new_message = new Message(1, message, new Date(System.currentTimeMillis()), username, "1");
+        //System.out.println(new_message);
+        //String json = objectMapper.writeValueAsString(new_message);
+        //out.println(json);
         if (!message.isEmpty() && !(messageField.getForeground() == Color.GRAY)){
             out.println(message);
             messageField.setText("");
@@ -125,6 +138,7 @@ public class Client {
 
     private void connectToServer() {
         try {
+            // creazione socket
             Socket socket = new Socket(SERVER_IP, PORT);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
@@ -137,16 +151,31 @@ public class Client {
 
             String msg = "";
 
+            JPanel jp = new JPanel();
+            JLabel uLabel = new JLabel("Enter username:");
+            JTextField uField = new JTextField();
+            JLabel pLabel = new JLabel("Enter password:");
+            jp.add(uLabel);
+            jp.add(uField);
+            jp.add(pLabel);
+            jp.setLayout(new GridLayout(4,1));
+            uField.setEditable(true);
+
+
             do {
-                username = alertWindow.showInputDialog(frame, !msg.isEmpty() ? msg : "Enter username: ");
-                if (username == null){
+                password = JOptionPane.showInputDialog(frame, jp);
+                username = uField.getText();
+
+                if (username == null || password == null){
                     System.exit(0);
                 }
                 else if(!controlUsername()){
-                    out.println(username);
+                    out.println(username + ":" + password);
                     msg = in.readLine();
                 }
             } while (!msg.equals("ok"));
+
+            // aggiornare lo user con le info dello user presenti nel db
 
             // Gestione della chat
             new Thread(() -> {

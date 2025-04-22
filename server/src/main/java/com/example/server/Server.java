@@ -14,8 +14,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.sql.Statement;
-
-// ... tutti gli import che già avevi ...
+import java.sql.ResultSet;
 
 public class Server {
     private static final int PORT = 42069;
@@ -23,6 +22,9 @@ public class Server {
     private static final String URL = "jdbc:postgresql://localhost:5432/chatdb";
     private static final String USER = "postgres";
     private static final String PASSWORD = "postgres";
+    
+    // testing
+    private static ObjectMapper objectMapper = new ObjectMapper();
 
     public static void main(String[] args) {
         connect();
@@ -52,9 +54,8 @@ public class Server {
         private Socket socket;
         private PrintWriter out;
         private BufferedReader in;
-        private String username;
+        private User user;
         private String accesso;
-        private String password;
 
         public ClientHandler(Socket socket) {
             this.socket = socket;
@@ -62,29 +63,27 @@ public class Server {
 
         public void run() {
             try {
+                // socket
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 out = new PrintWriter(socket.getOutputStream(), true);
-
+                
+                //username check
                 while (true) {
-                    accesso = in.readLine();
-                    String[] parts = accesso.split(":", 2);
-                    if (parts.length < 2) {
-                        out.println(">> Formato non valido. Usa: username:password");
-                        continue;
-                    }
-                    username = parts[0];
-                    password = parts[1];
-
-                    if (clients.containsKey(username)) {
+                    accesso = in.readLine(); // ora è un json
+                    // conversione
+                    user = objectMapper.readValue(accesso, User.class);
+                    
+                    if (clients.containsKey(user.getUsername())) {
                         out.println(">> Username già connesso");
                         continue;
                     }
-
-                    if (checkCredentials(username, password)) {
+                    if (checkCredentials(user.getUsername(), user.getPassword())) {
                         out.println("ok");
                         break;
                     } else {
+                        password = in.readLine();
                         createUser(username, password);
+                        //out.println(">> User created");
                         out.println("ok");
                         break;
                     }
@@ -92,95 +91,175 @@ public class Server {
 
                 synchronized (clients) {
                     clients.put(username, out);
+                    // write connection message on the chat
                     System.out.println(">> Server: " + username + " connected to the server");
                     broadcastMessage(">> Server: " + username + " joined the chat");
+                    // send to clients the name of the connected users
                     updateUserList();
                 }
 
                 String message;
                 while ((message = in.readLine()) != null) {
                     System.out.println("Ricevuto: " + message);
-                    if (message.startsWith("/")) {
-                        commandList(message.split("/", 2)[1]);
-                    } else {
-                        broadcastMessage(username + ": " + message);
-                        saveMessageToDatabase(message, username, 1); // Supponendo 1 come chat globale
+                    if (message.startsWith("/")){
+                        commandList(message.split("/")[1]);
                     }
-                }
-
+                    else
+                        broadcastMessage(username + ": " + message);
+                        saveMessageToDatabase(message, username, 1);
+                    }
+                
+            }catch(IOException ex){
+                ex.printStackTrace();
+        }finally{
+            try {
+                socket.close();
+                clients.remove(username);
+                updateUserList();
             } catch (IOException ex) {
                 ex.printStackTrace();
-            } finally {
-                try {
-                    socket.close();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
                 clients.remove(username);
                 updateUserList();
             }
         }
+    }
 
-        private void createUser(String username, String password) {
-            String query = "INSERT INTO users (username, password) VALUES (?, ?)";
-            try (Connection conn = connect();
-                 PreparedStatement pstmt = conn.prepareStatement(query)) {
-                pstmt.setString(1, username);
-                pstmt.setString(2, password);
-                pstmt.executeUpdate();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
+    // private boolean isUsernameInvalid(String username) {
+    // boolean result = false;
+    // synchronized (clients) {
+    // if (username == null || username == "" || clients.containsKey(username)) {
+    // result = true;
+    // out.println("invalid");
+    // //out.println("You can't put an empty username");
+    // }
+    // else if (username.contains(" ")){
+    // String formattedName = username.replaceAll("\\s+", "");
+    // username = formattedName;
+    // System.out.println(username);
+    // //System.out.println(username);
+    // //result = true;
+    // //out.println("spazio");
+    // }
 
-        private boolean checkCredentials(String username, String password) {
-            String query = "SELECT * FROM users WHERE username = ? AND password = ?";
-            try (Connection conn = connect();
-                 PreparedStatement pstmt = conn.prepareStatement(query)) {
-                pstmt.setString(1, username);
-                pstmt.setString(2, password);
-                ResultSet rs = pstmt.executeQuery();
-                return rs.next();
-            } catch (SQLException e) {
-                e.printStackTrace();
-                return false;
-            }
+    // // if (clients.containsKey(username)){
+    // // result = true;
+    // // //out.println("Username already taken");
+    // // }
+    // }
+    // return result;
+    // }
+
+    private void createUser(String username, String password) {
+        String query = "INSERT INTO users (username, password) VALUES (?, ?)";
+        try (Connection conn = connect();
+                PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+            pstmt.setString(1, username);
+            pstmt.setString(2, password); // Attenzione: assicurati che la password nel DB sia in chiaro o hashata nel
+                                          // modo corretto
+
+            ResultSet rs = pstmt.executeQuery();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+    }
+
+    private boolean checkCredentials(String username, String password) {
+        String query = "SELECT * FROM users WHERE username = ? AND password = ?";
+
+        try (Connection conn = connect();
+            PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+            pstmt.setString(1, username);
+            pstmt.setString(2, password); // Attenzione: assicurati che la password nel DB sia in chiaro o hashata nel
+                                          // modo corretto
+
+            ResultSet rs = pstmt.executeQuery();
+
+            return rs.next(); // ritorna true se esiste una riga (credenziali valide)
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 
         private void updateUserList() {
             String list = "/users " + String.join(", ", clients.keySet());
             broadcastMessage(list);
         }
 
-        private void commandList(String command) {
-            String[] formattedMessage = command.split(" ", 2);
-            switch (formattedMessage[0]) {
-                case "listUsers" -> {
-                    getUsersFromDatabase();
-                    out.println(">> Users listed from database.");
+    private void commandList(String command) {
+        String[] formattedMessage = command.split(" ", 2);
+        // all'interno di commandList:
+        switch (formattedMessage[0]) {
+            case "listUsers" -> {
+                getUsersFromDatabase();
+                out.println(">> Users listed from database.");
+            }
+            case "messages" -> {
+                if (formattedMessage.length > 1) {
+                    getMessagesFromUser(formattedMessage[1]);
+                } else {
+                    out.println(">> Usage: /messages <username>");
                 }
-                case "messages" -> {
-                    if (formattedMessage.length > 1) {
-                        getMessagesFromUser(formattedMessage[1]);
-                    } else {
-                        out.println(">> Usage: /messages <username>");
-                    }
-                }
-                case "allChats" -> getAllMessagesFromDatabase(out);
-                case "p" -> {
-                    String[] privateMessage = formattedMessage[1].split(" ", 2);
-                    privateMessage(privateMessage[0], username + ": (whisper) " + privateMessage[1]);
-                }
-                case "?" -> {
-                    out.println("Commands available:");
-                    out.println("/listUsers - Show users in the database");
-                    out.println("/messages <username> - Show messages from user");
-                    out.println("/allChats - Show all messages in the database");
-                    out.println("/p <username> <message> - Private message");
-                }
-                default -> out.println(">> Server: comando non esistente");
+            }
+            case "allChats" -> {
+                getAllMessagesFromDatabase(out);
+            }
+            case "p" -> {
+                String[] privateMessage = formattedMessage[1].split(" ", 2);
+                privateMessage(privateMessage[0], username + ": (whisper) " + privateMessage[1]);
+            }
+            case "?" -> {
+                out.println("Commands available:");
+                out.println("/listUsers - Show users in the database");
+                out.println("/messages <username> - Show messages from user");
+                out.println("/allChats - Show all messages in the database");
+                out.println("/p <username> <message> - Private message");
+            }
+            default -> {
+                out.println(">> Server: comando non esistente");
             }
         }
+
+    }
+
+    private static void broadcastMessage(String message) {
+        synchronized (clients) {
+            for (PrintWriter printWriter : clients.values()) {
+                printWriter.println(message);
+            }
+        }
+    }
+
+    private static void getUsersFromDatabase() {
+        try (Connection conn = connect();
+                java.sql.Statement stmt = conn.createStatement()) {
+            String query = "SELECT username FROM users";
+            java.sql.ResultSet rs = stmt.executeQuery(query);
+
+            StringBuilder usersList = new StringBuilder("Users in DB: ");
+            while (rs.next()) {
+                usersList.append(rs.getString("username")).append(", ");
+            }
+
+            // Rimuove l'ultima virgola e spazio
+            if (usersList.length() > 0) {
+                usersList.setLength(usersList.length() - 2);
+            }
+
+            // Stampa nella console
+            System.out.println(usersList.toString());
+
+            // Invia la lista a tutti i client connessi
+            broadcastMessage(usersList.toString());
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
         private void getMessagesFromUser(String username) {
             String userIdQuery = "SELECT id FROM users WHERE username = ?";
