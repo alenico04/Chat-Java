@@ -13,13 +13,17 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.example.Classes.User;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.sql.Statement;
 import java.sql.ResultSet;
 
 public class Server {
     private static final int PORT = 42069;
     private static Map<String, PrintWriter> clients = new HashMap<>();
-    private static final String URL = "jdbc:postgresql://localhost:5432/chatdb";
+    private static final String URL = "jdbc:postgresql://db:5432/chatdb";
     private static final String USER = "postgres";
     private static final String PASSWORD = "postgres";
     
@@ -62,6 +66,7 @@ public class Server {
         }
 
         public void run() {
+            String username = null;
             try {
                 // socket
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -81,7 +86,7 @@ public class Server {
                         out.println("ok");
                         break;
                     } else {
-                        password = in.readLine();
+                        String password = in.readLine();
                         createUser(username, password);
                         //out.println(">> User created");
                         out.println("ok");
@@ -210,6 +215,7 @@ public class Server {
             }
             case "p" -> {
                 String[] privateMessage = formattedMessage[1].split(" ", 2);
+                String username = null;
                 privateMessage(privateMessage[0], username + ": (whisper) " + privateMessage[1]);
             }
             case "?" -> {

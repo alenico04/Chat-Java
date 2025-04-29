@@ -10,10 +10,12 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.awt.GridLayout;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -158,7 +160,7 @@ public class Client {
             jp.add(uLabel);
             jp.add(uField);
             jp.add(pLabel);
-            jp.setLayout(new GridLayout(4,1));
+            jp.setLayout(new GridLayout(4, 1));
             uField.setEditable(true);
 
 
@@ -172,6 +174,10 @@ public class Client {
                 else if(!controlUsername()){
                     out.println(username + ":" + password);
                     msg = in.readLine();
+                    if (msg == null) {
+                        JOptionPane.showMessageDialog(frame, "Server disconnected or did not respond.", "Error", JOptionPane.ERROR_MESSAGE);
+                        System.exit(1);
+                    }
                 }
             } while (!msg.equals("ok"));
 
