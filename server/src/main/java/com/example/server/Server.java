@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.example.Classes.Message;
 import com.example.Classes.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class Server {
     private static final int PORT = 42069;
     private static Map<String, PrintWriter> clients = new HashMap<>();
-    private static final String URL = "jdbc:postgresql://localhost:5432/chatdb";
+    private static final String URL = "jdbc:postgresql://db:5432/chatdb";
     private static final String USER = "postgres";
     private static final String PASSWORD = "postgres";
     
@@ -69,6 +70,8 @@ public class Server {
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 out = new PrintWriter(socket.getOutputStream(), true);
 
+                String msg;
+
                 // username check
                 while (true) {
                     accesso = in.readLine(); // ora è un json
@@ -80,21 +83,19 @@ public class Server {
                         continue;
                     }
                     if (checkCredentials(user.getUsername(), user.getPassword())) {
-                        out.println("ok");
                         break;
                     } else {
                         createUser(user.getUsername(), user.getPassword());
                         //out.println(">> User created");
-                        out.println("ok");
                         break;
                     }
                     // out.println("Username already taken");
-
                 }
 
                 //message on user connection
                 synchronized (clients) {
                     clients.put(user.getUsername(), out);
+                    out.println(objectMapper.writeValueAsString(user)); // mi aspetto che il client sia in ascolto
                     // write connection message on the chat
                     System.out.println(">> Server: " + user.getUsername() + " connected to the server");
                     broadcastMessage(">> Server: " + user.getUsername() + " joined the chat");
@@ -103,8 +104,8 @@ public class Server {
                 }
 
                 // handling the message
-                String message;
-                while ((message = in.readLine()) != null){
+                Message message;
+                while ((message = objectMapper.readValue(in.readLine(), Message.class)) != null){
                     System.out.println("Ricevuto: " + message);
                     /*
                      * Message new_message = objectMapper.readValue(message);
@@ -115,13 +116,14 @@ public class Server {
                      *      broadcastMessage(new_message);
                      * }
                      */
-
-                    if (message.startsWith("/")){
-                        commandList(message.split("/")[1]);
+                    
+                    if (message.getText().startsWith("/")){
+                        commandList(message.getText().split("/")[1]);
                     }
                     else {
-                        broadcastMessage(user.getUsername() + ": " + message);
-                        getMessagesFromUser(user.getUsername());
+                        broadcastMessage(user.getUsername() + ": " + message.getText());
+                        saveMessageToDatabase(message);
+                        //getMessagesFromUser(user.getUsername());
                     }
                 }
                 
@@ -146,6 +148,11 @@ public class Server {
                 }
         }
     }
+
+    /* 
+    private void sendChatId(){
+
+    } */
 
 
     private void createUser(String username, String password) {
@@ -177,8 +184,6 @@ public class Server {
 
                 if(rs.next()){
                     user = new User(rs.getInt("id"), rs.getString("username"), rs.getString("password"), rs.getString("link_profile_photo"), "user");
-                    System.out.println(objectMapper.writeValueAsString(user));
-                    //System.out.println(id);
                 }
                 
                 return rs.next();  // ritorna true se esiste una riga (credenziali valide)
@@ -343,19 +348,18 @@ public class Server {
             }
         }
 
-    public static void saveMessageToDatabase(String text, String username, int receiverChatId) {
-        int senderUserId = 1;
+    public static void saveMessageToDatabase(Message message) {
         String query = "INSERT INTO messages (text, sender_user_id, reciever_chat_id) VALUES (?, ?, ?)";
 
         try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
                 PreparedStatement preparedStatement = connection.prepareStatement(query)) {
 
-            preparedStatement.setString(1, text);
-            preparedStatement.setInt(2, senderUserId);
-            preparedStatement.setInt(3, receiverChatId);
+            preparedStatement.setString(1, message.getText());
+            preparedStatement.setInt(2, message.getUser_id());
+            preparedStatement.setInt(3, message.getChatId());
 
             preparedStatement.executeUpdate();
-            System.out.println("Message saved to database: " + text);
+            System.out.println("Message saved to database: " + message.getText());
 
         } catch (SQLException e) {
             e.printStackTrace();

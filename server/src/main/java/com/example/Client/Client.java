@@ -11,6 +11,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Date;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -23,7 +24,9 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
+import com.example.Classes.Message;
 import com.example.Classes.User;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Client {
@@ -107,8 +110,18 @@ public class Client {
             }
         });
 
-        sendButton.addActionListener(event -> sendMessage());
-        messageField.addActionListener(event -> sendMessage());
+        sendButton.addActionListener(event -> {
+            try {
+                sendMessage();
+            } catch (JsonProcessingException ex) {
+            }
+        });
+        messageField.addActionListener(event -> {
+            try {
+                sendMessage();
+            } catch (JsonProcessingException ex) {
+            }
+        });
         darkModeButton.addActionListener(event -> {
             if(chatArea.getBackground() == Color.WHITE){
                 chatArea.setBackground(Color.BLACK);
@@ -128,14 +141,16 @@ public class Client {
         });
     }
 
-    private void sendMessage(){
+    private void sendMessage() throws JsonProcessingException{
         String message = messageField.getText().trim();
-        //Message new_message = new Message(1, message, new Date(System.currentTimeMillis()), username, "1");
-        //System.out.println(new_message);
-        //String json = objectMapper.writeValueAsString(new_message);
-        //out.println(json);
         if (!message.isEmpty() && !(messageField.getForeground() == Color.GRAY)){
-            out.println(message);
+            Message new_message = new Message(1, message, new Date(System.currentTimeMillis()), user.getUsername(), user.getId());
+            //System.out.println(new_message);
+            String json = objectMapper.writeValueAsString(new_message);
+            
+            //sending the message as json
+            out.println(json);
+            
             messageField.setText("");
         }
     }
@@ -171,9 +186,13 @@ public class Client {
                     user = new User(username, password);
                     String json = objectMapper.writeValueAsString(user);
                     out.println(json);
-                    msg = in.readLine();
+                    
+                    msg = in.readLine(); // si aspetta info dell'user
+                    
+                    user = objectMapper.readValue(msg, User.class); 
+                    break;
                 }
-            } while (!msg.equals("ok"));
+            } while (true);
 
             // aggiornare lo user con le info dello user presenti nel db
 
